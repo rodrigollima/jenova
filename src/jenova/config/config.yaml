@@ -1,0 +1,82 @@
+ 
+redishost: redishost
+
+---
+# Zimbra Global Config (8.0+)
+dlist:
+  admin_list_name: jenova_admin
+  # Attributes from the distribution list (zmprov desc)
+  attrs:
+    zimbraAdminConsoleUIComponents : [
+        'accountListView',
+        'COSListView',
+        'DListView',
+        'resourceListView',
+        'aliasListView',
+        'DLListView',
+        'domainListView'
+      ]
+    zimbraMailStatus: disabled
+    zimbraIsAdminGroup: 'TRUE'
+    zimbraHideInGal: 'TRUE'
+    description: Grupo com Rights de visualizacao do COS professional
+  grants: [
+    'domainAdminConsoleRights',
+    'getDomainQuotaUsage',
+    'get.domain.zimbraDomainCOSMaxAccounts',
+    'countAccount',
+    'set.account.zimbraCOSId',
+    'viewAdminConsoleDomainInfoTab',
+    'addDistributionListMember'
+  ]
+admin:
+  # It will create a delegated admin user with that name
+  default_name: jadmin
+  default_domain_name: jenova.system
+  attrs:
+    zimbraAdminConsoleUIComponents : OK
+    zimbraMailStatus: disabled
+    zimbraIsDelegatedAdminAccount: 'TRUE'
+    zimbraHideInGal: 'TRUE'
+    zimbraIsSystemAccount: 'TRUE'
+    # Value in seconds: 30 minutes
+    zimbraAdminAuthTokenLifetime: 1800
+    description: Permissions for authenticating though delegation
+  grants: [
+    'domainAdminConsoleRights',
+    'getDomainQuotaUsage',
+    'get.domain.zimbraDomainCOSMaxAccounts',
+    'countAccount',
+    'set.account.zimbraCOSId',
+    'viewAdminConsoleDomainInfoTab',
+    'addDistributionListMember'
+  ]
+
+---
+# Logging config
+logger:
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    simple:
+      format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+      datefmt: '%m/%d/%Y %H:%M:%S'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      formatter: simple
+      stream: ext://sys.stdout
+    prod_file_handler:
+      class: logging.handlers.RotatingFileHandler
+      formatter: simple
+      filename: /var/log/jenova/jenova.log
+      maxBytes: 104857600 # 100MB
+      backupCount: 1
+      encoding: utf8
+  loggers:
+    __main__:
+      level: DEBUG
+      handlers: [prod_file_handler]
+  root:
+    level: INFO
+    handlers: [console]

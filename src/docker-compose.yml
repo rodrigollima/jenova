@@ -1,0 +1,99 @@
+jenovadbhost:
+  build: ./mariadb
+  ports:
+    - "3306:3306"
+  environment:
+    - JNV_MDB_USER=jenovausr # A user with this name will be created
+    - JNV_MDB_PASS=jenovapss
+    - JNV_DB=jenovadb
+    - PDNS_DB=powerdns
+    - TZ=America/Sao_Paulo
+web:
+  build: .
+  volumes:
+    - ./jenova/:/opt/jenova
+  ports:
+    - "8443:8443"
+  links:
+    - jenovadbhost
+    - redishost
+  environment:
+    - JNV_MDB_HOST=jenovadbhost
+    - JNV_MDB_USER=jenovausr
+    - JNV_MDB_PASS=jenovapss
+    - JNV_MDB_PORT=3306
+    - JNV_DB=jenovadb
+    - JNV_SSL=True
+    - JNV_SSL_KEY=/opt/jenova/ssl/inova.key
+    - JNV_SSL_CERT=/opt/jenova/ssl/inova.crt
+    - AUTH_LOGIN=admin
+    - AUTH_PASSWORD=admin
+    - NODE_ENV=development
+    - JWT_SECRET_KEY=changeme
+    - CONFIG_PATH_FILE=/opt/jenova/config/config.yaml
+    - ACCESS_LOG=/var/log/jenova/gunicorn_access.log
+    - GENERAL_LOG=/var/log/jenova/gunicorn.log
+    - TZ=America/Sao_Paulo
+    - PYTHONPATH=/opt
+    - PYTHONWARNINGS=ignore
+redishost:
+  image: redis:alpine
+  ports:
+    - "6379:6379"
+syncworker:
+  build: .
+  volumes:
+    - ./jenova/:/opt/jenova
+  command: /bin/sh run_celery.sh
+  links:
+    - redishost
+    - jenovadbhost
+    - web
+    - powerdns
+  environment:
+    - CELERY_BROKER_URL=redis://redishost:6379/0
+    - PYTHONPATH=/opt
+    - CONFIG_PATH_FILE=/opt/jenova/config/config.yaml
+    - JNV_MDB_HOST=jenovadbhost
+    - JNV_MDB_USER=jenovausr
+    - JNV_MDB_PASS=jenovapss
+    - JNV_MDB_PORT=3306
+    - JNV_DB=jenovadb
+    - PYTHONWARNINGS=ignore
+
+powerdns:
+  build: ./powerdns
+  links:
+    - jenovadbhost
+  ports:
+    - "53:53/tcp"
+    - "53:53/udp"
+    - "8081:80"
+  environment:
+    - PDNS_MDB_HOST=jenovadbhost
+    - PDNS_MDB_USER=jenovausr
+    - PDNS_MDB_PASS=jenovapss
+    - PDNS_MDB_PORT=3306
+    - PDNS_DB=powerdns
+
+zimbra:
+  image: zextras/zimbra8:8.6.0p7
+  hostname: zimbra
+  domainname: jenova.com
+  mem_limit: 2G
+  ports:
+    - "7071:7071/tcp"
+    - "8080:80/tcp"
+  environment:
+    - PASSWORD=zpassword
+    - EXTERNALDNS=8.8.8.8
+    - MAILBOXD_DEBUG=yes
+
+flower:
+  image: placr/flower
+  ports:
+    - "5555:5555"
+  links:
+    - redishost
+  environment:
+    - REDIS_HOST=redishost

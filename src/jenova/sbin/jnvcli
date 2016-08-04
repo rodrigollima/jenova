@@ -1,0 +1,290 @@
+#!/usr/bin/env python
+import baker, requests, smtplib, yaml, sys, os, uuid, json
+from email.mime.text import MIMEText
+from os.path import expanduser
+
+HOME = expanduser('~')
+API_ENDPOINT = 'http://192.168.99.100:8080'
+CONFIG_FILE = 'config.yaml'
+CONFIG_FILE_FOLDER = HOME + '/.jnv'
+CONFIG_FILE_PATH = CONFIG_FILE_FOLDER + '/' + CONFIG_FILE 
+APIKEY, SECRETKEY = None, None
+
+if os.path.isfile(CONFIG_FILE_PATH):
+  cfg = yaml.load(open(CONFIG_FILE_PATH))
+  APIKEY = cfg['apikey']
+  SECRETKEY = cfg['secretkey']
+
+
+def initconfig(APIKEY, SECRETKEY):
+  try:
+    if APIKEY and SECRETKEY:
+      return
+    if not os.path.exists(CONFIG_FILE_FOLDER):
+      os.makedirs(CONFIG_FILE_FOLDER)
+    APIKEY = raw_input('Insert your API credentials\nAPIKEY:')
+    SECRETKEY = raw_input('SECRETKEY:')
+    if not APIKEY or not SECRETKEY:
+      print 'Wrong credentials. Exiting...'
+      sys.exit(1)
+    yaml.dump({'apikey': APIKEY, 'secretkey': SECRETKEY}, file(CONFIG_FILE_PATH, 'w'), default_flow_style=False)
+    os.chmod(CONFIG_FILE_PATH, 0400)
+  except Exception, e:
+    print 'Error doing initial config:', e
+    sys.exit(1)
+  except KeyboardInterrupt:
+    print '\nExiting'
+    sys.exit(1)
+  print 'Credentials configured succesfully!'
+  sys.exit(0)
+
+initconfig(APIKEY, SECRETKEY)
+baker = baker.Baker()
+
+REQUEST_HEADERS = {
+  'Content-Type' : 'application/json',
+  'APIKEY' : APIKEY,
+  'SECRETKEY' : SECRETKEY
+}
+
+def send_mail(mailinfo, username, apikey, secretkey):
+  msg = MIMEText("""Your username is: %s\nAPI_KEY: %s\nSECRET_KEY: %s\n"""
+    % (username, apikey, secretkey))
+  msg['Subject'] = 'Jinx API credentials'
+  msg['From'] = 'admin@inova.net'
+  msg['To'] = ', '.join(mailinfo['mailto'])
+  serv = smtplib.SMTP(mailinfo['smtpserver'], mailinfo['smtpport'])
+  serv.sendmail('admin@inova.net', mailinfo['mailto'], msg.as_string())
+  serv.close()
+
+@baker.command
+def setClient(name, login, email, enable_api=False, client_type='regular', company='', prettify=False):
+  """ Create a new client
+  :param name: The name of the client
+  :param login: The login used for authentication
+  :param email: The e-mail of the client
+  :param enable_api: If the API will be activated by this user. Default: False
+  :param client_type: The type of the client, could be regular or reseller. Default: regular
+  :param company: The fantasy name of the company. Default: ''
+  :param prettify: If the response is idented. Default: False
+  """
+  client_url = API_ENDPOINT + '/client/' + name
+  passwd = str(uuid.uuid4().get_hex()[0:8])
+  request_data = {
+    'client_type' : client_type,
+    'company' : company,
+    'email' : email,
+    'login' : login,
+    'password' : passwd,
+    'enable_api' : enable_api
+  }
+  r = requests.post(client_url, data=json.dumps(request_data), headers=REQUEST_HEADERS)
+  if r.status_code == 500:
+    response = {'message' : 'Error provisioning client: %s' % name, 'status_code' : 500}
+  elif r.status_code == 201:
+    response = r.json()
+    response['response']['password'] = passwd
+  else:
+    response = r.json()
+  
+  if prettify:
+    print json.dumps(response, indent=2)
+  else:
+    print json.dumps(response)
+
+@baker.command
+def delClient(clientname, prettify=False):
+  """ Delete a client
+  :param clientname: The name of the client
+  :param prettify: If the response is idented. Default: False
+  """
+  del_client_url = API_ENDPOINT + '/client/' + clientname
+  r = requests.delete(del_client_url, headers=REQUEST_HEADERS)
+  if r.status_code == 500:
+    response = { 'message' : 'Error deleting client: %s' % clientname }
+  if r.status_code == 204:
+    response = {'message' : 'Deleted client: %s succesfully!' % clientname}
+  else:
+    response = r.json()
+  
+  if prettify:
+    print json.dumps(response, indent=2)
+  else:
+    print json.dumps(response)
+
+@baker.command
+def setAuthentication(client_name, login, create_api_user=False, enable_api=False, prettify=False):
+  """ Create a new authentication login
+  :param client_name: The name of the client
+  :param login: The target login
+  :param create_api_user: Create a new API access if it's turned on. Default: False
+  :param enable_api: Enable/Disable the API for all apikey's of this login. Default: False
+  :param prettify: If the response is idented. Default: False
+  """
+  auth_url = API_ENDPOINT + '/authentication/%s' % login
+  passwd = str(uuid.uuid4().get_hex()[0:8])
+  request_data = {
+    'client_name' : client_name,
+    'password' : passwd, 
+    'create_api_user' : create_api_user
+  }
+  r = requests.post(auth_url, json.dumps(request_data), headers=REQUEST_HEADERS)
+  if r.status_code == 500:
+    response = {'message' : 'Error creating new authentication source: %s' % login, 'status_code' : 500}
+  elif r.status_code == 201:
+    response = r.json()
+    response['response']['password'] = passwd
+  else:
+    response = r.json()
+
+  if prettify:
+    print json.dumps(response, indent=2)
+  else:
+    print json.dumps(response)
+
+@baker.command
+def delAuthentication(login, prettify=False):
+  """ Delete an authentication login
+  :param login: The login to delete
+  :param prettify: If the response is idented. Default: False
+  """
+  auth_url = API_ENDPOINT + '/authentication/%s' % login
+  r = resquests.delete(auth_url, headers=REQUEST_HEADERS)
+  if r.status_code == 500:
+    response = { 'message' : 'Error deleting authentication login: %s' % login }
+  if r.status_code == 204:
+    response = {'message' : 'Deleted authentication user: %s succesfully!' % login}
+  else:
+    response = r.json()
+
+  if prettify:
+    print json.dumps(response, indent=2)
+  else:
+    print json.dumps(response)
+
+@baker.command
+def setApiAccess(authlogin, comment='', prettify=False):
+  """ Create a new API Access key
+  :param authlogin: The login on which this apikey belongs
+  :param comment: Identify the apikey with comments. Default: ''
+  :param prettify: If the response is idented. Default: False
+  """
+  api_access_url = API_ENDPOINT + '/apiaccess/' + authlogin
+  r = requests.post(api_access_url, data=json.dumps({'comment': comment}), headers=REQUEST_HEADERS)
+  if r.status_code == 500:
+    response = {'message' : 'Error creating new api access for login: %s' % authlogin, 'status_code' : 500}
+  elif r.status_code == 201:
+    response = r.json()
+    response['response']['password'] = passwd
+  else:
+    response = r.json()
+
+  if prettify:
+    print json.dumps(response, indent=2)
+  else:
+    print json.dumps(response)
+
+@baker.command
+def setService(service, servicehost, serviceapi='', serviceurl='', prettify=False):
+  """ Create a new service
+  :param service: The name of the service
+  :param servicehost: The hostname of the service
+  :param serviceapi: The service API URL. Default: ''
+  :param serviceurl: The service URL. Default: ''
+  :param prettify: If the response is idented. Default: False
+  """
+  service_url = API_ENDPOINT + '/service/' + service
+  request_data = {
+    'service_host' : servicehost,
+    'service_api' : serviceapi,
+    'serviceurl' : serviceurl
+  }
+  r = requests.post(service_url, data=json.dumps(request_data), headers=REQUEST_HEADERS)
+  if r.status_code == 500:
+    response = {'message' : 'Error creating service: %s' % service, 'status_code' : 500}
+  else:
+    response = r.json()
+
+  if prettify:
+    print json.dumps(response, indent=2)
+  else:
+    print json.dumps(response)
+
+@baker.command
+def delService(service, prettify=False):
+  """ Delete a service
+  :param service: The name of the service
+  :param prettify: If the response is idented. Default: False
+  """
+  service_url = API_ENDPOINT + '/service/' + service
+  r = requests.delete(service_url, headers=REQUEST_HEADERS)
+  if r.status_code == 500:
+    response = { 'message' : 'Error deleting service: %s' % service }
+  if r.status_code == 204:
+    response = {'message' : 'Deleted service: %s succesfully!' % service}
+  else:
+    response = r.json()
+
+  if prettify:
+    print json.dumps(response, indent=2)
+  else:
+    print json.dumps(response)
+
+@baker.command
+def getServices(service, prettify=False):
+  """ Get the services
+  :param service: The name of the service. Using 'all' means all services.
+  :param prettify: If the response is idented. Default: False
+  """
+  service_url = API_ENDPOINT + '/service/' + service
+  r = requests.get(service_url, headers=REQUEST_HEADERS)
+  if r.status_code == 500:
+    response = {'message' : 'Error getting services for: %s' % service, 'status_code' : 500}
+  else:
+    response = r.json()
+
+  if prettify:
+    print json.dumps(response, indent=2)
+  else:
+    print json.dumps(response)
+
+@baker.command
+def setDomain(domain, client, service, prettify=False):
+  """ Create a new domain
+  :param domain: The name of the domain
+  :param client: The name of the client of the domain
+  :param service: The name of the service of the domain 
+  :param prettify: If the response is idented. Default: False
+  """
+  domain_url = API_ENDPOINT + '/client/%s/service/%s/domain/%s' % (client, service, domain)
+  r = requests.post(domain_url, headers=REQUEST_HEADERS)
+  if r.status_code == 500:
+    response = {'message' : 'Error getting services for: %s' % service, 'status_code' : 500}
+  else:
+    response = r.json()
+
+  if prettify:
+    print json.dumps(response, indent=2)
+  else:
+    print json.dumps(response)
+
+@baker.command
+def getDomain(domain, prettify=False):
+  """ Get info about the domains
+  :param domain: The name of the domain. Using the 'all' will bring all domains
+  :param prettify: If the response is idented. Default: False
+  """
+  domain_url = API_ENDPOINT + '/domain/' + domain
+  r = requests.get(domain_url, headers=REQUEST_HEADERS)
+  if r.status_code == 500:
+    response = {'message' : 'Error getting info about domain: %s' % domain, 'status_code' : 500}
+  else:
+    response = r.json()
+
+  if prettify:
+    print json.dumps(response, indent=2)
+  else:
+    print json.dumps(response)
+
+if __name__ == '__main__':
+  baker.run()

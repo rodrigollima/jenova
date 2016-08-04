@@ -1,0 +1,8 @@
+#!/bin/bash
+if [ "$NODE_ENV" == "development" ]; then
+  echo 'Starting webapp...'
+	python app.py
+else
+  echo "Starting webapp..."
+	gunicorn app:app --name jenova -b 0.0.0.0:8443 -w3 --certfile=$JNV_SSL_CERT --keyfile=$JNV_SSL_KEY --access-logfile $ACCESS_LOG --log-file $GENERAL_LOG
+fi
