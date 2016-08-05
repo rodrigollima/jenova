@@ -38,7 +38,10 @@ from jenova.resources import (
   NoticesResource,
 
   # Accounts resources
-  ExternalAccountsResource, ExternalAccountsListResource, ExternalDomainStatusResource
+  ExternalAccountsResource, ExternalAccountsListResource, ExternalDomainStatusResource,
+
+  # Reports resources
+  ReportServiceReseller
 )
 
 SKEY = 'changeme'
@@ -94,6 +97,12 @@ try:
       '/users/<target_auth>/admin',
       '/users/<target_auth>/api'
     ]
+  )
+
+
+  # Report Resource
+  api.add_resource(ReportServiceReseller, 
+    '/reports/reseller/<reseller_name>/service/<service_name>/domains/<domain_name>'
   )
 
   # Notices Resource
