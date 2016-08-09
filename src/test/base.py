@@ -14,6 +14,7 @@ class BaseTest(object):
     self.service_mxhero = self.cfg['service_mxhero']
     self.service_dns = self.cfg['service_dns']
     self.user = self.cfg['user']
+    self.domain = self.cfg['domain']
 
     self.general['headers'] = {
       'Content-Type' : 'application/json',

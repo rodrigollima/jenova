@@ -29,26 +29,29 @@ client:
   password : acmepass
 
 domain:
-  name:mocked.com
-  services:['zimbra', 'dns']
+  name : mocked.com
+  services : ['zimbra', 'dns', 'mxhero']
 
 service_zimbra:
-  service_host : localhost
+  name : 'zimbra' 
+  service_host : zimbra
   service_type : ZIMBRA
   service_desc : Zimbra
-  service_api : https://localhost:7071/service/soap
+  service_api : https://zimbra:7071/service/admin/soap
   credentials_identity : admin@jenova.com
-  credentials_secret : zpass 
+  credentials_secret : zpassword 
 
 service_dns:
-  service_host : localhost
+  name : 'dns'
+  service_host : dns
   service_type : DNS
   service_desc : DNS
-  service_api : http://localhost:8081
+  service_api : http://dns:8081
   credentials_secret : changeme
 
 service_mxhero:
-  service_host : localhost
+  name : 'mxhero'
+  service_host : mxhero
   service_type : MXHERO
   service_desc : Mxhero
-  service_api : http://localhost
+  service_api : http://mxhero:82
