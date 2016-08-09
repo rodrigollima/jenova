@@ -17,6 +17,8 @@ web:
   links:
     - jenovadbhost
     - redishost
+    - zimbra
+    - powerdns
   environment:
     - JNV_MDB_HOST=jenovadbhost
     - JNV_MDB_USER=jenovausr
@@ -49,6 +51,7 @@ syncworker:
     - redishost
     - jenovadbhost
     - web
+    - zimbra
     - powerdns
   environment:
     - CELERY_BROKER_URL=redis://redishost:6379/0
