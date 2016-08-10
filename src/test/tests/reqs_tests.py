@@ -41,6 +41,11 @@ class AuthTestCase(TestCase, BaseTest):
     self.sync_zimbra_url = '%s/services/%s/domains/%s' % (self.general['api_url'],
                                 self.service_zimbra['name'],
                                 self.domain['name'])
+
+    self.sync_dns_url = '%s/services/%s/domains/%s' % (self.general['api_url'],
+                                self.service_dns['name'],
+                                self.domain['name'])
+
   def tearDown(self):
     BaseTest.tearDown(self)
     
@@ -211,25 +216,21 @@ class AuthTestCase(TestCase, BaseTest):
         print job_id, r.json()['response']['task_state']
         sleep(2)
 
-    print 'PASS: activating zimbra'
-  # def test_get_auth(self):
-  #   r = requests.get(self.reseller_url, headers=self.general['headers'], verify=False)
-    
-  #   if r.status_code != 200:
-  #     print r.text
-  #     print r.status_code
-  #     self.assertTrue(False)
-    
-  #   print 'PASS: get reseller'
+    print 'PASS: activate zimbra'
 
-  #   r = requests.get(self.client_url, headers=self.general['headers'], verify=False)
-    
-  #   if r.status_code != 200:
-  #     print r.text
-  #     print r.status_code
-  #     self.assertTrue(False)
 
-  #   print 'PASS: get client'   
-    
+    # activate dns
+    d = json.dumps({})
+    r = requests.put(self.sync_dns_url, headers=self.general['headers'], 
+                            data=d,
+                            verify=False)
+
+    if r.status_code != 201 and r.status_code != 204:
+      print r.text
+      print r.status_code
+      self.assertTrue(False)
+
+    print 'PASS: activate dns'
+        
 if __name__ == "__main__":
   unittest.main()
