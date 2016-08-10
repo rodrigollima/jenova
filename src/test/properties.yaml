@@ -30,7 +30,6 @@ client:
 
 domain:
   name : mocked.com
-  services : ['zimbra', 'dns', 'mxhero']
 
 service_zimbra:
   name : 'zimbra' 
@@ -43,10 +42,10 @@ service_zimbra:
 
 service_dns:
   name : 'dns'
-  service_host : dns
+  service_host : powerdns
   service_type : DNS
   service_desc : DNS
-  service_api : http://dns:8081
+  service_api : http://powerdns:8081
   credentials_secret : changeme
 
 service_mxhero:
