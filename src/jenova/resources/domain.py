@@ -410,7 +410,7 @@ class DomainServiceResource(BaseResource):
   """
   def __init__(self, **kwargs):
     filters = ['name']
-    self.zgconfig = kwargs['zimbra_global_config']
+    self.zgconfig = kwargs['main_config']
     if not self.zgconfig['dlist'].get('grants'):
       abort(500, message = 'Could not find any grants in config.yaml')
     super(DomainServiceResource, self).__init__(filters)
@@ -695,7 +695,7 @@ class DomainServiceResource(BaseResource):
 class DomainServicePreAuthDelegationResource(BaseResource):
   def __init__(self, **kwargs):
     filters = ['name']
-    self.zconfig = kwargs['zimbra_global_config']
+    self.zconfig = kwargs['main_config']
     if not self.zconfig['dlist'].get('grants'):
       abort(500, message = 'Could not find any grants in config.yaml')
     super(DomainServicePreAuthDelegationResource, self).__init__(filters)
