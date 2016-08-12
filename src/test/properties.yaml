@@ -1,0 +1,56 @@
+general:
+  api_url : 'https://localhost:8443'
+  login : admin
+  password : admin
+  token : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7Im5hbWUiOiJRQSBBZG1pbiIsImFkbWluIjpmYWxzZSwiYXBpX2VuYWJsZWQiOnRydWUsImFwaV9hY2Nlc3MiOltdLCJlbmFibGVkIjp0cnVlLCJlbWFpbCI6InNhbmRyby5tZWxsb0Bpbm92YS5uZXQiLCJjcmVhdGVfdGltZSI6IjIwMTUtMTItMjBUMTY6MzU6MjQrMDA6MDAiLCJjbGllbnRfaWQiOm51bGwsImdsb2JhbF9hZG1pbiI6dHJ1ZSwibG9naW4iOiJxYV9hZG1pbiIsImlkIjoxLCJwZXJtaXNzaW9ucyI6W119fQ.45zCR4RFf2_Fi_hSWXsd1KnIQzaWPzMeZMmyVjeMm8M
+
+user:
+  name : usrecorp
+  client_name : acme
+  password : userpass
+  display : Reseller User
+  email : usr@recorp.com
+
+reseller:
+  name : recorp
+  company : Reseller Corporation
+  email : contact@recorp.com
+  login : recorpadm
+  login_name : Recorp Administrator
+  password : recorpass
+  services : ['zimbra']
+
+client:
+  name : acme
+  company : Acme Industries
+  email : founders@acme.co
+  login : acme
+  login_name : Acme
+  password : acmepass
+
+domain:
+  name : mocked.com
+
+service_zimbra:
+  name : 'zimbra' 
+  service_host : zimbra
+  service_type : ZIMBRA
+  service_desc : Zimbra
+  service_api : https://zimbra:7071/service/admin/soap
+  credentials_identity : admin@jenova.com
+  credentials_secret : zpassword 
+
+service_dns:
+  name : 'dns'
+  service_host : powerdns
+  service_type : DNS
+  service_desc : DNS
+  service_api : http://powerdns:8081
+  credentials_secret : changeme
+
+service_mxhero:
+  name : 'mxhero'
+  service_host : mxhero
+  service_type : MXHERO
+  service_desc : Mxhero
+  service_api : http://mxhero:82

@@ -8,7 +8,7 @@ jenovadbhost:
     - JNV_DB=jenovadb
     - PDNS_DB=powerdns
     - TZ=America/Sao_Paulo
-web:
+api:
   build: .
   volumes:
     - ./jenova/:/opt/jenova
@@ -17,6 +17,8 @@ web:
   links:
     - jenovadbhost
     - redishost
+    - zimbra
+    - powerdns
   environment:
     - JNV_MDB_HOST=jenovadbhost
     - JNV_MDB_USER=jenovausr
@@ -48,7 +50,8 @@ syncworker:
   links:
     - redishost
     - jenovadbhost
-    - web
+    - api
+    - zimbra
     - powerdns
   environment:
     - CELERY_BROKER_URL=redis://redishost:6379/0

@@ -21,7 +21,7 @@ class CallLogger(object):
   @classmethod
   def logger(cls):
     with open(CONFIG_FILE) as f:
-      _, _, logger_config = yaml.load_all(f)
+      logger_config = yaml.load(f)
     
     logging.config.dictConfig(logger_config['logger'])
     return logging.getLogger(os.environ.get('HOSTNAME'))
@@ -32,8 +32,8 @@ class Config(object):
   @classmethod
   def load(cls):
     with open(CONFIG_FILE) as f:
-      main_config, global_zimbra_config, logger_config = yaml.load_all(f)
-      return main_config, global_zimbra_config, logger_config
+      main_config = yaml.load(f)
+      return main_config
 
   @classmethod
   def gen_zimbra_grants(cls, zgrants, target_name, target_dlist, grantee_type='grp'):
