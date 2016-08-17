@@ -32,6 +32,19 @@ domain:
   name : mocked.com
   services : ['zimbra', 'dns', 'mxhero']
 
+dlists:
+  dlist_valid: dlist_test@acme.co
+
+  dlist_invalid: newlist@invalid.acme.co
+
+  accounts:
+    - name: account1@acme.co
+    - name: account2@acme.co
+  accounts_to_update:
+    - name: account3@acme.co
+    - name: account4@acme.co
+
+
 service_zimbra:
   name : 'zimbra' 
   service_host : zimbra

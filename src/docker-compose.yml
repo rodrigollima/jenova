@@ -8,7 +8,7 @@ jenovadbhost:
     - JNV_DB=jenovadb
     - PDNS_DB=powerdns
     - TZ=America/Sao_Paulo
-web:
+api:
   build: .
   volumes:
     - ./jenova/:/opt/jenova
@@ -50,7 +50,7 @@ syncworker:
   links:
     - redishost
     - jenovadbhost
-    - web
+    - api
     - zimbra
     - powerdns
   environment:

@@ -38,7 +38,10 @@ from jenova.resources import (
   NoticesResource,
 
   # Accounts resources
-  ExternalAccountsResource, ExternalAccountsListResource, ExternalDomainStatusResource
+  ExternalAccountsResource, ExternalAccountsListResource, ExternalDomainStatusResource,
+
+  #Distribution List resources
+  DistributionListsResource, DistributionListResource
 )
 
 SKEY = 'changeme'
@@ -125,6 +128,11 @@ try:
   # External Accounts Management
   api.add_resource(ExternalAccountsResource, '/services/<service_name>/domains/<domain_name>/accounts/<target_account>')
   api.add_resource(ExternalAccountsListResource, '/services/<service_name>/domains/<domain_name>/accounts')
+  
+  #External Accounts -> DistributionListResource
+  api.add_resource(DistributionListsResource, '/services/<service_name>/domains/<domain_name>/dlists')
+  api.add_resource(DistributionListResource, '/services/<service_name>/domains/<domain_name>/dlists/<target_dlist>')
+  
   # Authentication resource
   api.add_resource(AuthenticationResource, *['/login', '/auth'])
 
@@ -157,7 +165,7 @@ try:
       ]
   )
 
-  api.add_resource(DnsRecordsBackupResource, '/service/<service_name>/zone/<domain_name>/backup')
+  api.add_resource(DnsRecordsBackupResource, '/service/<service_name>/zone/<domain_name>/backup')  
   # TODO: dns_type get resource.
   # TODO: all domains resource
 

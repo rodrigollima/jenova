@@ -15,6 +15,7 @@ class BaseTest(object):
     self.service_dns = self.cfg['service_dns']
     self.user = self.cfg['user']
     self.domain = self.cfg['domain']
+    self.dlists = self.cfg['dlists']
 
     self.general['headers'] = {
       'Content-Type' : 'application/json',
