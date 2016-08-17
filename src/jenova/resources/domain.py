@@ -365,7 +365,7 @@ class DomainResource(BaseResource):
     if Domain.query.join(Client, Client.id == Domain.client_id) \
       .filter(Domain.name == domain_name) \
       .filter(Client.name == client_name).first():
-      abort(409, message='The domain "{}" already exists for this client "{}"'.format(domain_name, client_name))
+      abort(400, message='The domain "{}" already exists for this client "{}"'.format(domain_name, client_name))
 
     domain = Domain(
       name = domain_name,

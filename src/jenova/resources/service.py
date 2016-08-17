@@ -70,7 +70,7 @@ class ServiceResource(BaseResource):
   def post(self, target_service):
     target_service = target_service.lower()
     if Service.query.filter_by(name=target_service).first():
-      abort(409, message='The service {} already exists'.format(target_service))
+      abort(400, message='The service {} already exists'.format(target_service))
 
     self.parser.add_argument('service_host', type=str, required=True)
     self.parser.add_argument('service_type', type=str, required=True, choices=('ZIMBRA', 'MXHERO', 'DNS'))
