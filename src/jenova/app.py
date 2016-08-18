@@ -41,7 +41,7 @@ from jenova.resources import (
   ExternalAccountsResource, ExternalAccountsListResource, ExternalDomainStatusResource,
 
   # Reports resources
-  ResellerReportResource
+  ResellerReportResource,
 
   #Distribution List resources
   DistributionListsResource, DistributionListResource
