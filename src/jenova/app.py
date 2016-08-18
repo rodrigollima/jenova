@@ -41,7 +41,7 @@ from jenova.resources import (
   ExternalAccountsResource, ExternalAccountsListResource, ExternalDomainStatusResource,
 
   # Reports resources
-  ReportServiceReseller
+  ResellerReportResource
 )
 
 SKEY = 'changeme'
@@ -99,12 +99,6 @@ try:
     ]
   )
 
-
-  # Report Resource
-  api.add_resource(ReportServiceReseller, 
-    '/reports/reseller/<reseller_name>/service/<service_name>/domains/<domain_name>'
-  )
-
   # Notices Resource
   api.add_resource(NoticesResource, *[
       '/service/<target_service>/notices',
@@ -127,6 +121,9 @@ try:
       '/scopes/<scope_name>/users/<user>/permissions/delete'
     ]
   )
+
+  # Reports
+  api.add_resource(ResellerReportResource, '/reports/resellers/<target_reseller>')
 
   # External Domain Status
   api.add_resource(ExternalDomainStatusResource, '/services/<service_name>/domains/<domain_name>/status')

@@ -26,8 +26,8 @@ class ReportTestCase(TestCase, BaseTest):
 
   # -------------------------------------------------------------------- tests
   def test_get_report(self):
-    
     r = requests.get(self.report_url, headers=self.general['headers'], verify=False)
+    # print json.dumps(r.json(), indent=2)
     print r.text
     # if r.status_code != 200:
     #   print r.text

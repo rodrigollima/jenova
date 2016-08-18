@@ -3,6 +3,7 @@ from pythonzimbra.communication import Communication
 from pythonzimbra.request_xml import RequestXml
 from pythonzimbra.tools.dict import get_value
 from pythonzimbra.tools.auth import authenticate
+from jenova.components.common import Config
 import json, time, random, string, re
 
 class ZimbraRequestError(Exception):
@@ -1082,3 +1083,40 @@ class ZimbraRequest(object):
         )
       
     return response.get_response()
+
+class ZimbraReport(object):
+  def __init__(self, admin_url, admin_user, admin_pass):
+    self.zr = ZimbraRequest(
+      admin_url = admin_url, 
+      admin_user = admin_user, 
+      admin_pass = admin_pass
+    )
+    config = Config.load()
+    self.zimbra_edition_attributes = config['zimbra_edition_attributes']
+    self.zimbra_edition_hierarchy = config['zimbra_edition_hierarchy']
+      
+    self.all_edition_zattrs = []
+    for edition in self.zimbra_edition_attributes.items():
+        for attr in edition[1]:
+          self.all_edition_zattrs.append(attr)
+    self.all_edition_zattrs =  ','.join(self.all_edition_zattrs)
+
+    print self.all_edition_zattrs
+  def getFullReport(self):
+    # def searchDirectory(self, query, domain_name=None, count_only=False,
+    # types='accounts', offset=0, limit=50, attrs='zimbraId'):
+    
+    zcos = self.zr.searchDirectory(query='objectClass=zimbraCOS', types='coses', attrs=self.all_edition_zattrs)
+    print json.dumps(zcos, indent=2)
+    
+
+if __name__ == '__main__':
+  report = ZimbraReport(
+    admin_url = 'https://zimbra.inova.net:7071/service/admin/soap',
+    admin_user = 'operacao@inova.net',
+    admin_pass = 'sta+his'
+  )
+
+  domains = ['inova.net', 'inova.com.br', 'cainelli.me']
+
+  report.getFullReport()
