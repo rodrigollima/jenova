@@ -23,12 +23,13 @@ from jenova.resources.notices import NoticesResource
 from jenova.resources.report import ResellerReportResource
 
 from jenova.resources.external_accounts import ExternalAccountsResource, ExternalAccountsListResource, ExternalDomainStatusResource
+
+from jenova.resources.distribution_list import DistributionListsResource, DistributionListResource
 __all__ = [
   'AuthenticationResource', 'ApiAccessResource',
   'CosResource', 'SyncCosResource',
   'DomainResource', 'DomainServiceResource',
   'ServiceResource',
   'ClientResource', 'NoticesResource', 'ExternalAccountsResource', 'ExternalAccountsListResource', 'ExternalDomainStatusResource',
-  'ResellerReportResource'
-
+  'DistributionListsResource', 'DistributionListResource', 'ResellerReportResource'
 ]

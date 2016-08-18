@@ -1,0 +1,119 @@
+FORMAT: 1A
+
+# jenova
+
+Jenova is a project developed on top of Zimbra API SOAP for tasks admin of email services.
+
+# Distribution List
+Distribution lists are very frequently used to aggregate a department or people of company, e.g:
+all@domain.com for all accounts of company or support@domain.com for support team.
+
+## Working with all Distribution Lists [/services/{service}/domains/{domain}/dlists]
+
++ Parameters
+    + service (required, string) - Target service in edition
+    + domain (required, string) - Target domain in edition
+
+### Get All Distribution Lists [GET]
+This method return all Distribution Lists.
+
++ Response 200 (application/json)
+
+        [
+            {
+                "response": {
+                    "dlists": [
+                        {
+                             "name": "all@domain.com",
+                             "zimbraId": "e3a314ab-48e4-43d4-b7ed-02f249c2aa5e"
+                        },
+                        {
+                            "name": "suport@domain.com",
+                            "zimbraId": "2c58310f-87ed-4c33-b1bb-163b834b0eee"
+                        }
+                    ],
+                "total": 2
+                }
+            }
+        ]
+        
+### Create a Distribution List [POST]
+You can create trought Jenova API using this endpoint. 
+It takes a JSON object containing a name of distribution list and a collection of accounts 
+that will be part of this list. The list name is unique, and accounts should exists.
+
++ Request (application/json)
+
+        {
+            "dlist" : "support@domain.com",
+            "accounts" : [
+                {"name" : "account1@jenova.com.br"},
+                {"name" : "account2@jenova.com.br"}
+            ]
+        }
+
++ Response 201 (application/json)
+
+
+    + Body
+    
+            {
+                "response": {
+                    "name": "minha_lista_seg@jenova.com.br",
+                    "zimbraId": "1ed30ff5-4291-4380-8dd0-e2a8179f0938"
+                }   
+            }
+
+## Workin with one Distribution List [/services/{service}/domains/{domain}/dlists/{dlist_name}]
+
+To manage one Distribution list that already exists.
+
++ Parameters
+    + service (required, string) - Target service in edition
+    + domain (required, string) - Target domain in edition
+    + dlist_name (string) - Name of distribution list, e.g: support@domain.com
+
+### Get a Distribution List [GET]
+Tell the Distribution list name that you want manage in 'dlist_name' parameter.
+    
++ Response 200 (application/json)
+
+        {
+            "response": {
+                "accounts": [
+                {
+                    "name": "sysadmin@domain.com"
+                },
+                {
+                    "name": "developerdomain.com"
+                }
+                ],
+            "dlist": "suppotg@domain.com",
+            "total": 2
+        }
+    
+
+### Update a Distribution List [PUT]
+To add or remove members of distribution list, you will have that send a PUT request and in the json request should contain 
+the final list of the members. The API will combine the current members with the new json list and add or remove as necessary
+Is not permited change the name of Distribution List.
+
++ Request (application/json)
+
+        {
+            "dlist" : "minha_lista_seg@jenova.com.br",
+            "accounts" : [
+                {"name" : "conta1@jenova.com.br"},
+                {"name" : "conta2@jenova.com.br"}
+            ]
+        }
+        
++ Response 201 (application/json)
+
+        {
+            "response": "DList update sucessful"
+        }
+
+### Delete a Distribution List [DELETE]
+To DELETE a Distribution List
++ Response 204

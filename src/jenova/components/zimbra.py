@@ -606,6 +606,13 @@ class ZimbraRequest(object):
 
     return(response.get_response())
 
+  def getDistributionListId(self, dlist_name):
+    """ Return a string with dlist zimbraId
+    :param dlist_name:str name of the zimbra dlist.
+    """
+    res = self.getDistributionList(dlist_name)
+    return res['GetDistributionListResponse']['dl']['id']
+
   def createDistributionList(self, dlist, attrs=list()):
     """ This method create zimbra distribution list. A list of attributes may be given, we will handle it for you.
     :param dlist: The target distribution list
@@ -644,6 +651,30 @@ class ZimbraRequest(object):
     if response.is_fault():
       raise ZimbraRequestError(
         message = 'Error creating DL %s Error: %s' % (dlist, response.get_fault_message()),
+        response = response
+      )
+
+    return response.get_response()
+
+  def getAllDistributionList(self):
+    """ Gets all distribution list in domain.
+    """
+    self.cleanUp()
+
+    self.request.add_request(
+      request_name = "GetAllDistributionListsRequest",
+      request_dict = {
+        "dl": {
+          "by": "name",
+        },
+      },
+      namespace = "urn:zimbraAdmin"
+    )
+
+    response = self.comm.send_request(self.request)
+    if response.is_fault():
+      raise ZimbraRequestError(
+        message = 'Error getting all DL: %s Error: %s' % (response.get_fault_message()),
         response = response
       )
 
