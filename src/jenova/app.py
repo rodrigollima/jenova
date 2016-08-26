@@ -66,10 +66,10 @@ try:
   app = create_app()
   CORS(app, expose_headers=['Location'])
   api = restful.Api(app)
-  main_config = Config.load()
+  main_config, zimbra_global_config, logger_config = Config.load()
 
   # Resellers/Clients
-  logging.config.dictConfig(main_config['logger'])
+  logging.config.dictConfig(logger_config['logger'])
   logger = logging.getLogger(__name__)
 
   # Resellers/Clients resources
