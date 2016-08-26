@@ -144,7 +144,7 @@ class DistributionListResource(BaseResource):
     if self.request_user_client_id != domain.client_id and not self.is_admin:
       abort(403, message = 'Permission denied! The requester does not belong to the requested domain.')
 
-  def get(self, service_name, domain_name, target_dlist):   
+  def get(self, service_name, domain_name, dlist_name):   
     domain = abort_if_obj_doesnt_exist('name', domain_name, Domain)
     service = abort_if_obj_doesnt_exist('name', service_name, Service)
     cred = service.credentials
@@ -159,7 +159,7 @@ class DistributionListResource(BaseResource):
     )
 
     try:
-      r = zr.getDistributionList(target_dlist)
+      r = zr.getDistributionList(dlist_name)
     except Exception, e:
       return {'response': {
                 'message': e.message
@@ -171,7 +171,7 @@ class DistributionListResource(BaseResource):
             'total' : 0
           }
 
-    res['dlist'] = target_dlist
+    res['dlist'] = dlist_name
 
     for accounts in r['GetDistributionListResponse']['dl']['dlm']:
       data = dict()
@@ -181,7 +181,7 @@ class DistributionListResource(BaseResource):
     
     return {'response' : res}
 
-  def put(self, service_name, domain_name, target_dlist):
+  def put(self, service_name, domain_name, dlist_name):
     domain = abort_if_obj_doesnt_exist('name', domain_name, Domain)
     service = abort_if_obj_doesnt_exist('name', service_name, Service)
 
@@ -190,7 +190,7 @@ class DistributionListResource(BaseResource):
       abort(400, message = 'Could not find any credentials for the service %s' % service.name)
     admin_user, admin_password = cred.identity, cred.secret
 
-    username, domain = target_dlist.split('@')
+    username, domain = dlist_name.split('@')
     if not domain_name == domain:
       abort(400, message = 'Dlist must belong to required domain %s' % domain_name)
 
@@ -198,7 +198,7 @@ class DistributionListResource(BaseResource):
     self.parser.add_argument('accounts', type=list, required=True, location='json')
     
     reqdata = self.parser.parse_args()        
-    dlist_name = target_dlist
+    dlist_name = dlist_name
     
     if not domain_name == dlist_name.split('@')[1]:
       abort(400, message = 'Distribution List must belong to required domain %s' % domain_name)    
@@ -224,7 +224,7 @@ class DistributionListResource(BaseResource):
     membersToAdd = list(set(members) - set(current_members))
     membersToRem = list(set(current_members) - set(members))
 
-    idDList = zr.getDistributionListId(target_dlist)
+    idDList = zr.getDistributionListId(dlist_name)
 
     if membersToAdd: 
       zr.addDistributionListMember(idDList,membersToAdd)
@@ -234,7 +234,7 @@ class DistributionListResource(BaseResource):
 
     return {'response': 'DList update sucessful'}, 201
 
-  def delete(self, service_name, domain_name, target_dlist):
+  def delete(self, service_name, domain_name, dlist_name):
     domain = abort_if_obj_doesnt_exist('name', domain_name, Domain)
     service = abort_if_obj_doesnt_exist('name', service_name, Service)
 
@@ -243,7 +243,7 @@ class DistributionListResource(BaseResource):
       abort(400, message = 'Could not find any credentials for the service %s' % service.name)
     admin_user, admin_password = cred.identity, cred.secret
 
-    username, domain = target_account.split('@')
+    username, domain = dlist_name.split('@')
     if not domain_name == domain:
       abort(400, message = 'Account must belong to required domain %s' % domain_name)
 
@@ -253,6 +253,6 @@ class DistributionListResource(BaseResource):
       admin_pass = admin_password
     )
 
-    zid = zr.getDListId(dlist_name=target_dlist)
-    zr.deleteDistributionList(zid = zid)
+    zid = zr.getDistributionListId(dlist_name=dlist_name)
+    zr.deleteDistributionList(dlist_zimbra_id = zid)
     return {}, 204
