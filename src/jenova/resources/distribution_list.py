@@ -173,6 +173,9 @@ class DistributionListResource(BaseResource):
 
     res['dlist'] = dlist_name
 
+    if not r['GetDistributionListResponse']['dl'].get('dlm'):
+      return {'response' : res}
+
     for accounts in r['GetDistributionListResponse']['dl']['dlm']:
       data = dict()
       data['name'] = accounts['_content']
