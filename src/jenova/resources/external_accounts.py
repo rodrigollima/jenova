@@ -125,6 +125,12 @@ class ExternalAccountsListResource(BaseResource):
       abort(400, message = 'Could not find any credentials for the service %s' % service.name)
     admin_user, admin_password = cred.identity, cred.secret
 
+
+    self.parser.add_argument('limit', type=int, location='args')
+    self.parser.add_argument('offset', type=int, location='args')
+    reqdata = self.parser.parse_args()
+    offset, limit = reqdata.get('offset') or 0, reqdata.get('limit') or 100
+
     zr = ZimbraRequest(
       admin_url = service.service_api, 
       admin_user = admin_user, 
@@ -135,7 +141,9 @@ class ExternalAccountsListResource(BaseResource):
       domain_name = domain_name,
       types = 'accounts',
       attrs = ','.join(ZIMBRA_SUPPORTED_ATTRIBUTES),
-      query = '(objectClass=zimbraAccount)(mail=*)'
+      query = '(objectClass=zimbraAccount)(mail=*)',
+      limit = limit,
+      offset = offset
     )
 
     res = {
@@ -194,6 +202,11 @@ class ExternalAccountsResource(BaseResource):
       abort(400, message = 'Could not find any credentials for the service %s' % service.name)
     admin_user, admin_password = cred.identity, cred.secret
 
+    self.parser.add_argument('limit', type=int, location='args')
+    self.parser.add_argument('offset', type=int, location='args')
+    reqdata = self.parser.parse_args()
+    offset, limit = reqdata.get('offset') or 0, reqdata.get('limi') or 100
+
     zr = ZimbraRequest(
       admin_url = service.service_api, 
       admin_user = admin_user, 
@@ -204,7 +217,9 @@ class ExternalAccountsResource(BaseResource):
       domain_name = domain_name,
       types = 'accounts',
       attrs = ','.join(ZIMBRA_SUPPORTED_ATTRIBUTES),
-      query = '(mail=*%s*)' % target_account
+      query = '(mail=*%s*)' % target_account,
+      limit = limit,
+      offset = offset 
     )
 
     res = []
