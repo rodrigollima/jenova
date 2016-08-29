@@ -4,7 +4,8 @@ from pythonzimbra.request_xml import RequestXml
 from pythonzimbra.tools.dict import get_value
 from pythonzimbra.tools.auth import authenticate
 from jenova.components.common import Config
-import json, time, random, string, re
+from redis import StrictRedis
+import json, time, random, string, re, pickle
 
 class ZimbraRequestError(Exception):
   def __init__(self, message, response=None):
@@ -37,7 +38,7 @@ class ZimbraRequest(object):
     self.comm = Communication(self.admin_url)
 
   def searchDirectory(self, query, domain_name=None, count_only=False,
-    types='accounts', offset=0, limit=50, attrs='zimbraId'):
+    types='accounts', offset=0, limit=0, attrs='zimbraId'):
     """ Search Zimbra Directory
     :param query: Query string - should be an LDAP-style filter string (RFC 2254)
     :param domain_name: The domain name to limit the search to. Default: Don't limit the search
@@ -48,6 +49,7 @@ class ZimbraRequest(object):
     :param attrs: Comma separated list of attributes (zmprov desc). Default: zimbraId
     """
     # '1' true '0' false
+    print 'limit[%s] offset:[%s]' % (limit, offset)
     request_dict = {
       'query' : query,
       'countOnly' : count_only and '1' or '0',
@@ -1125,29 +1127,144 @@ class ZimbraReport(object):
     config = Config.load()
     self.zimbra_edition_attributes = config['zimbra_edition_attributes']
     self.zimbra_edition_hierarchy = config['zimbra_edition_hierarchy']
-      
+    self.zimbra_report_plus_attributes = config['zimbra_report_plus_attributes']
+    self.redis = StrictRedis(config['redishost'] or 500)
+    self.report_cache_time = config['report_cache_time']
+
     self.all_edition_zattrs = []
     for edition in self.zimbra_edition_attributes.items():
         for attr in edition[1]:
           self.all_edition_zattrs.append(attr)
     self.all_edition_zattrs =  ','.join(self.all_edition_zattrs)
-
-    print self.all_edition_zattrs
-  def getFullReport(self):
-    # def searchDirectory(self, query, domain_name=None, count_only=False,
-    # types='accounts', offset=0, limit=50, attrs='zimbraId'):
     
-    zcos = self.zr.searchDirectory(query='objectClass=zimbraCOS', types='coses', attrs=self.all_edition_zattrs)
-    print json.dumps(zcos, indent=2)
+    # retrieve data from cache. it reduces significantly time.
+    try:
+      self.zcos = pickle.loads(self.redis.get('jenova:cache:zcos'))
+      self.zdomain_cos = pickle.loads(self.redis.get('jenova:cache:zdomains'))
+    except:
+      pass
     
 
-if __name__ == '__main__':
-  report = ZimbraReport(
-    admin_url = 'https://zimbra.inova.net:7071/service/admin/soap',
-    admin_user = 'operacao@inova.net',
-    admin_pass = 'sta+his'
-  )
+  def struct_search_result(self, types, data):
+    '''
+    param: types:str [cos|account|domain]
+    param: data:dict - ZimbraRequest.searchDirectory response.
+    '''
 
-  domains = ['inova.net', 'inova.com.br', 'cainelli.me']
+    r = {}
+    
+    if data['SearchDirectoryResponse']['searchTotal'] == 0:
+      return r
+    if type(data['SearchDirectoryResponse'][types]) != list:
+      data['SearchDirectoryResponse'][types] = [data['SearchDirectoryResponse'][types]]
 
-  report.getFullReport()
+    for d in data['SearchDirectoryResponse'][types]:
+      r[d['name']] = {'zimbraId' : d['id']}
+      for a in d['a']:
+        r[d['name']][a.get('n')] = a.get('_content') 
+
+    return r
+    
+  def getEditionReport(self, domains, nocache=False):
+    if 'zcos' not in dir(self) or nocache:
+      self.zcos = self.struct_search_result(
+        types = 'cos',
+        data = self.zr.searchDirectory(
+          query='objectClass=zimbraCOS', 
+          types='coses',
+          attrs=self.all_edition_zattrs))
+      with self.redis.pipeline() as pipe:
+        pipe.set('jenova:cache:zcos', pickle.dumps(self.zcos))
+        pipe.expire('jenova:cache:zcos', self.report_cache_time)
+        pipe.execute()
+    
+    if 'zdomain_cos' not in dir(self) or nocache:
+      dcfilter = 'zimbraDomainDefaultCOSId=*'
+      self.zdomain_cos = self.struct_search_result(
+        types = 'domain',
+        data = self.zr.searchDirectory(
+          query=dcfilter,
+          types='domains',
+          attrs='zimbraDomainDefaultCOSId'))
+      
+      with self.redis.pipeline() as pipe:
+        pipe.set('jenova:cache:zdomains', pickle.dumps(self.zdomain_cos))
+        pipe.expire('jenova:cache:zdomains', 500)
+        pipe.execute()
+      
+    zmda = '(|'
+    for d in domains:
+      zmda = zmda + '(zimbraMailDeliveryAddress=*@%s)' % d
+    zmda = zmda + ')' 
+    sfilter = '(&(objectClass=zimbraAccount)%s(!(objectClass=zimbraCalendarResource))(!(zimbraIsSystemResource=TRUE)))' % zmda
+    self.zaccounts = self.struct_search_result(
+      types = 'account',
+      data = self.zr.searchDirectory(
+          query=sfilter,
+          types='accounts',
+          attrs=','.join(self.zimbra_report_plus_attributes) + ',zimbraCOSId,' + self.all_edition_zattrs))
+
+    cos_map = {}
+    for cos in self.zcos:
+      cos_map[self.zcos[cos]['zimbraId']] = cos
+    
+    
+    rdata = {'response' : [], 'domains' : {}}
+    
+    for usr in self.zaccounts:
+      
+      domain_name = usr.split('@')[1]
+      cos = 'default'
+
+      # get cos
+      if self.zdomain_cos.get(domain_name):
+        default_domain_cos = self.zdomain_cos.get(domain_name)['zimbraDomainDefaultCOSId']
+        cos = cos_map.get(default_domain_cos) or cos
+      
+      account_cos = self.zaccounts[usr].get('zimbraCOSId')
+      if account_cos:
+        cos = cos_map.get(account_cos) or cos
+      
+      # get edition
+      edition_found = False
+      for edition in self.zimbra_edition_hierarchy:
+        for attribute in self.zimbra_edition_attributes[edition]:
+          if not edition_found:
+            if attribute in self.zaccounts[usr] and self.zaccounts[usr][attribute] == 'TRUE':
+              edition_found = edition
+            elif attribute in self.zcos[cos] and self.zcos[cos][attribute] == 'TRUE':
+              edition_found = edition
+      
+      # get plus attributes
+      for a in self.zimbra_report_plus_attributes:
+        if not rdata['domains'].get(domain_name):
+          rdata['domains'][domain_name] = {
+            'editions' : {},
+            'accounts' : {},
+            'domain' : domain_name
+          }
+        if not rdata['domains'][domain_name]['accounts'].get(usr):
+          rdata['domains'][domain_name]['accounts'][usr] = {'cos' : cos}
+        rdata['domains'][domain_name]['accounts'][usr][a] = self.zaccounts[usr].get(a) 
+      
+        if not rdata['domains'][domain_name]['editions'].get(edition_found):
+          rdata['domains'][domain_name]['editions'][edition_found] = 0
+          
+      
+      # increment counter
+      rdata['domains'][domain_name]['editions'][edition_found] += 1
+    
+    # sort data
+    for d in rdata['domains']:
+      accounts = []
+      for a in rdata['domains'][d]['accounts']:
+        rdata['domains'][d]['accounts'][a]['email'] = a
+        accounts.append(rdata['domains'][d]['accounts'][a])
+      
+      rdata['domains'][d]['accounts'] = accounts
+      rdata['response'].append(rdata['domains'][d])
+
+    rdata.pop('domains')
+    # end sort data
+
+    return rdata['response']

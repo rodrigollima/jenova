@@ -25,16 +25,35 @@ class ReportTestCase(TestCase, BaseTest):
     BaseTest.tearDown(self)
 
   # -------------------------------------------------------------------- tests
-  def test_get_report(self):
+def test_get_reseller_report(self):
+    r = requests.get(self.reseller_report_url, headers=self.general['headers'], verify=False)
     
-    r = requests.get(self.report_url, headers=self.general['headers'], verify=False)
-    print r.text
-    # if r.status_code != 200:
-    #   print r.text
-    #   print r.status_code
-    #   self.assertTrue(False)
+    if r.status_code != 200:
+      print r.text
+      print r.status_code
+      self.assertTrue(False)
 
-    # print 'PASS: get zimbra report'
+    print 'PASS: get reseller report'
+  
+  def test_get_domain_report(self):
+    r = requests.get(self.domain_report_url, headers=self.general['headers'], verify=False)
+    
+    if r.status_code != 200:
+      print r.text
+      print r.status_code
+      self.assertTrue(False)
+
+    print 'PASS: get domain report'
+
+  def test_sync_report(self):
+    rdata = json.dumps({'sync' : 1})
+    r = requests.post(self.reseller_report_url, data=rdata,headers=self.general['headers'], verify=False)
+    if r.status_code != 201:
+      print r.text
+      print r.status_code
+      self.assertTrue(False)
+
+    print 'PASS: update zimbra usage report'
     
 if __name__ == "__main__":
   unittest.main()

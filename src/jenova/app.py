@@ -41,7 +41,7 @@ from jenova.resources import (
   ExternalAccountsResource, ExternalAccountsListResource, ExternalDomainStatusResource,
 
   # Reports resources
-  ResellerReportResource,
+  ResellerReportResource, DomainReportResource,
 
   #Distribution List resources
   DistributionListsResource, DistributionListResource
@@ -127,7 +127,7 @@ try:
 
   # Reports
   api.add_resource(ResellerReportResource, '/reports/resellers/<target_reseller>')
-
+  api.add_resource(DomainReportResource, '/reports/domains/<target_domain>/services/<target_service>')
   # External Domain Status
   api.add_resource(ExternalDomainStatusResource, '/services/<service_name>/domains/<domain_name>/status')
 

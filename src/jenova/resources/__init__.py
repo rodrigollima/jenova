@@ -20,7 +20,7 @@ from jenova.resources.dns import DnsRecordsResource, DnsSOAResource, DnsRecordsB
 
 from jenova.resources.notices import NoticesResource
 
-from jenova.resources.report import ResellerReportResource
+from jenova.resources.report import ResellerReportResource, DomainReportResource
 
 from jenova.resources.external_accounts import ExternalAccountsResource, ExternalAccountsListResource, ExternalDomainStatusResource
 
@@ -31,5 +31,5 @@ __all__ = [
   'DomainResource', 'DomainServiceResource',
   'ServiceResource',
   'ClientResource', 'NoticesResource', 'ExternalAccountsResource', 'ExternalAccountsListResource', 'ExternalDomainStatusResource',
-  'DistributionListsResource', 'DistributionListResource', 'ResellerReportResource'
+  'DistributionListsResource', 'DistributionListResource', 'ResellerReportResource', 'DomainReportResource'
 ]
