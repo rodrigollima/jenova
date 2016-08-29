@@ -49,7 +49,6 @@ class ZimbraRequest(object):
     :param attrs: Comma separated list of attributes (zmprov desc). Default: zimbraId
     """
     # '1' true '0' false
-    print 'limit[%s] offset:[%s]' % (limit, offset)
     request_dict = {
       'query' : query,
       'countOnly' : count_only and '1' or '0',
