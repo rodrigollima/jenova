@@ -131,7 +131,7 @@ try:
   
   #External Accounts -> DistributionListResource
   api.add_resource(DistributionListsResource, '/services/<service_name>/domains/<domain_name>/dlists')
-  api.add_resource(DistributionListResource, '/services/<service_name>/domains/<domain_name>/dlists/<target_dlist>')
+  api.add_resource(DistributionListResource,  '/services/<service_name>/domains/<domain_name>/dlists/<dlist_name>')
   
   # Authentication resource
   api.add_resource(AuthenticationResource, *['/login', '/auth'])
