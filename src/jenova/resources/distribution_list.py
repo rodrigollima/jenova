@@ -52,7 +52,7 @@ class DistributionListsResource(BaseResource):
       admin_pass = admin_password
     )
 
-    r = zr.getAllDistributionList()
+    r = zr.getAllDistributionList(domain_name=domain_name)
 
     res = {
       'dlists' : [],

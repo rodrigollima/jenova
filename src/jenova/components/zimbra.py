@@ -657,7 +657,7 @@ class ZimbraRequest(object):
 
     return response.get_response()
 
-  def getAllDistributionList(self):
+  def getAllDistributionList(self, domain_name):
     """ Gets all distribution list in domain.
     """
     self.cleanUp()
@@ -665,8 +665,9 @@ class ZimbraRequest(object):
     self.request.add_request(
       request_name = "GetAllDistributionListsRequest",
       request_dict = {
-        "dl": {
+        "domain": {
           "by": "name",
+          "_content" : domain_name
         },
       },
       namespace = "urn:zimbraAdmin"
