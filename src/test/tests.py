@@ -110,7 +110,7 @@ class ClientTestCase(unittest.TestCase):
 
     # Add Zimbra Service
     request_data = json.dumps({
-      'service_host' : '54.165.130.169',
+      'service_host' : '%s' % API_SERVER,
       'service_type' : 'ZIMBRA',
       'service_desc' : 'Zimbra',
       'service_api' : 'https://%s:7071/service/admin/soap' % API_SERVER,

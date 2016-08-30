@@ -1,8 +1,41 @@
  
 redishost: redishost
-
----
+report_cache_time: 1500
+zimbra_report_plus_attributes: [
+  'givenName',
+  'sn',
+  'displayName',
+  'zimbraAccountStatus',
+  'zimbraLastLogonTimestamp', 
+  'mail',
+  'description'
+]
 # Zimbra Global Config (8.0+)
+zimbra_edition_hierarchy: ['professional', 'standard', 'bemail_plus', 'bemail']
+zimbra_edition_attributes:
+  professional: [
+    'zimbraFeatureMAPIConnectorEnabled',
+    'zimbraFeatureMobileSyncEnabled',
+    'zimbraArchiveEnabled'
+  ]
+  standard: [
+    'zimbraFeatureConversationsEnabled',
+    'zimbraFeatureTaggingEnabled',
+    'zimbraAttachmentsIndexingEnabled',
+    'zimbraFeatureViewInHtmlEnabled',
+    'zimbraFeatureGroupCalendarEnabled',
+    'zimbraFreebusyExchangeURL',
+    'zimbraFeatureSharingEnabled',
+    'zimbraFeatureTasksEnabled',
+    'zimbraFeatureBriefcasesEnabled',
+    'zimbraFeatureSMIMEEnabled',
+    'zimbraFeatureVoiceEnabled'
+  ]
+  bemail_plus: [
+    'zimbraFeatureManageZimlets',
+    'zimbraFeatureCalendarEnabled'
+  ]
+  bemail: []
 dlist:
   admin_list_name: jenova_admin
   # Attributes from the distribution list (zmprov desc)
@@ -51,8 +84,6 @@ admin:
     'viewAdminConsoleDomainInfoTab',
     'addDistributionListMember'
   ]
-
----
 # Logging config
 logger:
   version: 1

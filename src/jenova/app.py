@@ -38,7 +38,13 @@ from jenova.resources import (
   NoticesResource,
 
   # Accounts resources
-  ExternalAccountsResource, ExternalAccountsListResource, ExternalDomainStatusResource
+  ExternalAccountsResource, ExternalAccountsListResource, ExternalDomainStatusResource,
+
+  # Reports resources
+  ResellerReportResource, DomainReportResource,
+
+  #Distribution List resources
+  DistributionListsResource, DistributionListResource
 )
 
 SKEY = 'changeme'
@@ -63,10 +69,10 @@ try:
   app = create_app()
   CORS(app, expose_headers=['Location'])
   api = restful.Api(app)
-  main_config, zimbra_global_config, logger_config = Config.load()
+  main_config = Config.load()
 
   # Resellers/Clients
-  logging.config.dictConfig(logger_config['logger'])
+  logging.config.dictConfig(main_config['logger'])
   logger = logging.getLogger(__name__)
 
   # Resellers/Clients resources
@@ -119,17 +125,25 @@ try:
     ]
   )
 
+  # Reports
+  api.add_resource(ResellerReportResource, '/reports/resellers/<target_reseller>')
+  api.add_resource(DomainReportResource, '/reports/domains/<target_domain>/services/<target_service>')
   # External Domain Status
   api.add_resource(ExternalDomainStatusResource, '/services/<service_name>/domains/<domain_name>/status')
 
   # External Accounts Management
   api.add_resource(ExternalAccountsResource, '/services/<service_name>/domains/<domain_name>/accounts/<target_account>')
   api.add_resource(ExternalAccountsListResource, '/services/<service_name>/domains/<domain_name>/accounts')
+  
+  #External Accounts -> DistributionListResource
+  api.add_resource(DistributionListsResource, '/services/<service_name>/domains/<domain_name>/dlists')
+  api.add_resource(DistributionListResource,  '/services/<service_name>/domains/<domain_name>/dlists/<dlist_name>')
+  
   # Authentication resource
   api.add_resource(AuthenticationResource, *['/login', '/auth'])
 
   # Domain resources
-  config_state = { 'zimbra_global_config' : zimbra_global_config, 'main_config' : main_config }
+  config_state = {  'main_config' : main_config }
   api.add_resource(DomainListResource, '/clients/<client_name>/domains')
   api.add_resource(DomainResource, '/clients/<client_name>/domains/<domain_name>')
   api.add_resource(DomainListServiceStateResource, '/clients/<client_name>/domains/<target_domain>/services')
@@ -157,7 +171,7 @@ try:
       ]
   )
 
-  api.add_resource(DnsRecordsBackupResource, '/service/<service_name>/zone/<domain_name>/backup')
+  api.add_resource(DnsRecordsBackupResource, '/service/<service_name>/zone/<domain_name>/backup')  
   # TODO: dns_type get resource.
   # TODO: all domains resource
 

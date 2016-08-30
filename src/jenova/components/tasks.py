@@ -1,3 +1,4 @@
+from redis import StrictRedis
 from celery.utils.log import get_task_logger
 from celery import Task, states
 from celery.exceptions import Ignore
@@ -7,9 +8,10 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from .extensions import db
 from .exceptions import TaskZimbraInconsistencyError, TaskError
-from .zimbra import ZimbraRequest, ZimbraRequestError
+from .zimbra import ZimbraRequest, ZimbraRequestError, ZimbraReport
 from ..models import Cos, Domain, DomainServiceState
-from .common import CallLogger
+from .common import CallLogger, Config
+import pickle
 
 celery = create_celery_app()
 #logger = get_task_logger(__name__)
@@ -28,6 +30,7 @@ def create_cos_zimbra_task(self, target_cos, zimbra_config, features, cos_id):
   :param features: A dict containing the features for the given COS. feature -> value
   :param cos_id: The jenova db Cos.id
   """
+  
   zr = ZimbraRequest(
     admin_url = zimbra_config['service_api'], 
     admin_user = zimbra_config['admin_user'], 
@@ -404,3 +407,27 @@ def update_cos_into_domain_zimbra_task(self, zimbra_config, domain_name, zimbra_
     # {zimbraId-of-a-cos}:{max-accounts}
   #  value = ':'.join((zimbra_cos_id, quota))
   #)
+
+@celery.task(bind=True)
+def update_zimbra_domain_report_task(self, zimbra_config, domains, reseller_name):
+  """Update Zimbra Account Report to Redis.
+  :param zimbra_config: A dict type containing the keys: service_api, admin_user, admin_password
+  :param domains: List of domains from a same zimbra service
+  """
+  config = Config.load()
+  redis = StrictRedis(config['redishost'])
+
+  report = ZimbraReport(
+    admin_url = zimbra_config['service_api'], 
+    admin_user = zimbra_config['admin_user'], 
+    admin_pass = zimbra_config['admin_password'],
+  )
+
+  
+  response = pickle.dumps(report.getEditionReport(domains=domains))
+  reseller_key = 'jenova:reports:%s' % reseller_name
+  
+  with redis.pipeline() as pipe:
+    pipe.set(reseller_key, response)
+    # pipe.expire(domain_key, 100) # TODO
+    pipe.execute()

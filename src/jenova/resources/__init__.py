@@ -20,11 +20,16 @@ from jenova.resources.dns import DnsRecordsResource, DnsSOAResource, DnsRecordsB
 
 from jenova.resources.notices import NoticesResource
 
+from jenova.resources.report import ResellerReportResource, DomainReportResource
+
 from jenova.resources.external_accounts import ExternalAccountsResource, ExternalAccountsListResource, ExternalDomainStatusResource
+
+from jenova.resources.distribution_list import DistributionListsResource, DistributionListResource
 __all__ = [
   'AuthenticationResource', 'ApiAccessResource',
   'CosResource', 'SyncCosResource',
   'DomainResource', 'DomainServiceResource',
   'ServiceResource',
-  'ClientResource', 'NoticesResource', 'ExternalAccountsResource', 'ExternalAccountsListResource', 'ExternalDomainStatusResource'
+  'ClientResource', 'NoticesResource', 'ExternalAccountsResource', 'ExternalAccountsListResource', 'ExternalDomainStatusResource',
+  'DistributionListsResource', 'DistributionListResource', 'ResellerReportResource', 'DomainReportResource'
 ]
