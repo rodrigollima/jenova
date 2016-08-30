@@ -1,5 +1,15 @@
  
 redishost: redishost
+report_cache_time: 1500
+zimbra_report_plus_attributes: [
+  'givenName',
+  'sn',
+  'displayName',
+  'zimbraAccountStatus',
+  'zimbraLastLogonTimestamp', 
+  'mail',
+  'description'
+]
 # Zimbra Global Config (8.0+)
 zimbra_edition_hierarchy: ['professional', 'standard', 'bemail_plus', 'bemail']
 zimbra_edition_attributes:

@@ -52,7 +52,7 @@ class DistributionListsResource(BaseResource):
       admin_pass = admin_password
     )
 
-    r = zr.getAllDistributionList()
+    r = zr.getAllDistributionList(domain_name=domain_name)
 
     res = {
       'dlists' : [],
@@ -172,6 +172,9 @@ class DistributionListResource(BaseResource):
           }
 
     res['dlist'] = dlist_name
+
+    if not r['GetDistributionListResponse']['dl'].get('dlm'):
+      return {'response' : res}
 
     for accounts in r['GetDistributionListResponse']['dl']['dlm']:
       data = dict()

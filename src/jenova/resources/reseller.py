@@ -1,7 +1,6 @@
 from flask.ext.restful import abort, request
 from datetime import datetime
 import uuid
-from time import sleep
 
 from jenova.resources.base import BaseResource, abort_if_obj_doesnt_exist
 from jenova.models import (
@@ -108,7 +107,6 @@ class ResellerDomainListResource(BaseResource):
       .offset(offset)\
       .limit(limit)\
       .all()
-    #domains = Domain.query.limit(offset, limit).all()
 
     if not domains:
       abort(404, message='Could not find any domains')
@@ -400,47 +398,3 @@ class ClientResource(BaseResource):
         'client_id' : client.id
       } 
     }, 201
-
-  # def post(self, target_reseller, target_client):
-  #   target_client = target_client.lower()
-  #   reseller = abort_if_obj_doesnt_exist('name', target_reseller, Reseller)
-  #   if Client.query.filter_by(name=target_client).first():
-  #     abort(400, message='The client {} already exists'.format(target_client))
-
-  #   #sleep(2)
-  #   # TODO: Validate email field
-  #   self.parser.add_argument('email', type=str, required=True, case_sensitive=True)
-  #   self.parser.add_argument('login_name', type=str, required=True)
-  #   self.parser.add_argument('login', type=str, required=True, case_sensitive=True)
-  #   self.parser.add_argument('password', type=str, required=True)
-  #   self.parser.add_argument('company', type=str, required=True)
-  #   self.parser.add_argument('enable_api', type=bool, default=False)
-  #   self.parser.add_argument('admin', type=bool, default=False)
-  #   reqdata = self.parser.parse_args()
-
-  #   # Check if the user belongs to the reseller
-  #   client = Client(
-  #     reseller_id = reseller.id,
-  #     name = target_client,
-  #     email = reqdata['email'],
-  #     company = reqdata['company']
-  #   )
-
-  #   user = User(login = reqdata['login'],
-  #     name = reqdata['login_name'],
-  #     email = reqdata['email'],
-  #     password = Security.hash_password(reqdata['password']),
-  #     api_enabled = reqdata['enable_api'],
-  #     admin = reqdata['admin']
-  #   )
-  #   client.user = [user]
-  #   db.session.add(client)
-  #   db.session.commit()
-  #   client = Client.query.filter_by(name=target_client).one()
-
-  #   return {
-  #     'response' : { 
-  #       'client_id' : client.id, 
-  #       'user_id' : user.id
-  #     } 
-  #   }, 201

@@ -17,25 +17,43 @@ class ReportTestCase(TestCase, BaseTest):
     BaseTest.setUp(self)
 
     #/reports/resellers/<reseller_name>/services/<service_name>/domains/<domain_name>
-    self.report_url = '%s/reports/resellers/%s/services/%s/domains/%s' % (
+    self.report_url = '%s/reports/resellers/%s' % (
                                 self.general['api_url'],
-                                self.reseller['name'],
-                                self.service_zimbra['name'],
-                                self.domain['name'])
+                                self.reseller['name'])
 
   def tearDown(self):
     BaseTest.tearDown(self)
 
   # -------------------------------------------------------------------- tests
-  def test_get_report(self):
-    pass
-    # r = requests.get(self.report_url, headers=self.general['headers'], verify=False)
-    # if r.status_code != 200:
-    #   print r.text
-    #   print r.status_code
-    #   self.assertTrue(False)
+def test_get_reseller_report(self):
+    r = requests.get(self.reseller_report_url, headers=self.general['headers'], verify=False)
+    
+    if r.status_code != 200:
+      print r.text
+      print r.status_code
+      self.assertTrue(False)
 
-    # print 'PASS: get zimbra report'
+    print 'PASS: get reseller report'
+  
+  def test_get_domain_report(self):
+    r = requests.get(self.domain_report_url, headers=self.general['headers'], verify=False)
+    
+    if r.status_code != 200:
+      print r.text
+      print r.status_code
+      self.assertTrue(False)
+
+    print 'PASS: get domain report'
+
+  def test_sync_report(self):
+    rdata = json.dumps({'sync' : 1})
+    r = requests.post(self.reseller_report_url, data=rdata,headers=self.general['headers'], verify=False)
+    if r.status_code != 201:
+      print r.text
+      print r.status_code
+      self.assertTrue(False)
+
+    print 'PASS: update zimbra usage report'
     
 if __name__ == "__main__":
   unittest.main()
