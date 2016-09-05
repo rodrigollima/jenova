@@ -59,6 +59,8 @@ class DistributionListsResource(BaseResource):
       'total' : 0
     }
 
+    if type(r['GetAllDistributionListsResponse']['dl']) is not list:
+      r['GetAllDistributionListsResponse']['dl'] = [r['GetAllDistributionListsResponse']['dl']]
     for dlist in r['GetAllDistributionListsResponse']['dl']:
       data = dict()
       data['name'] = dlist['name']
