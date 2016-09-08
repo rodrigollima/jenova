@@ -155,7 +155,7 @@ class UserListResource(BaseResource):
     self.parser.add_argument('limit', type=int, location='args')
     self.parser.add_argument('offset', type=int, location='args')
     reqdata = self.parser.parse_args()
-    offset, limit = reqdata.get('offset') or 0, reqdata.get('limit') or 25
+    offset, limit = reqdata.get('offset') or 0, reqdata.get('limit') or 1000
 
     if self.is_global_admin:
       users = User.query\
