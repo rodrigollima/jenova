@@ -25,7 +25,7 @@ class ResellerListResource(BaseResource):
       .offset(offset)\
       .limit(limit)\
       .all()
-
+      
     if not resellers:
       abort(404, message = 'Could not find any reseller')
     return {
@@ -232,12 +232,13 @@ class ClientListResource(BaseResource):
     return 'client'
 
   # Overrided
-  def is_forbidden(self, target_reseller):
+  def is_forbidden(self, **kwargs):
     """ Check for access rules:
     A global admin must not have any restrictions.
     Only an admin must access this resource.
     A requester must have access of your own clients
     """
+    target_reseller = kwargs.get('target_reseller')
     if self.is_global_admin: return
     if not self.is_admin and not request.method == 'GET':
       abort(403, message = 'Permission denied! Does not have enough permissions for access this resource')
@@ -249,22 +250,33 @@ class ClientListResource(BaseResource):
     if self.request_user_reseller_id != reseller.id:
       abort(403, message = 'Permission denied! The reseller does not belongs to the requester.')
 
-  def get(self, target_reseller):
+  def get(self, **kwargs):
+    target_reseller = kwargs.get('target_reseller')
     self.parser.add_argument('limit', type=int, location='args')
     self.parser.add_argument('offset', type=int, location='args')
     reqdata = self.parser.parse_args()
     offset, limit = reqdata.get('offset') or 0, reqdata.get('limit') or 25
 
-    reseller = abort_if_obj_doesnt_exist(self.filter_by, target_reseller, Reseller)
-    
-    if self.is_an_admin:
+    if self.is_global_admin:
+      clients = Client.query \
+          .offset(offset)\
+          .limit(limit)\
+          .all()
+      return {
+        'response' : { 
+          'reseller_id' : None,
+          'clients' : ClientSchema(many=True).dump(clients).data
+        } 
+      }
+    elif self.is_admin:
+      reseller = abort_if_obj_doesnt_exist(self.filter_by, target_reseller, Reseller)
       clients = Client.query.join(Reseller, Client.reseller_id == Reseller.id) \
           .filter(Reseller.name == target_reseller) \
-          .all()
-          # .offset(offset)\
-          # .limit(limit)\
-          
+          .offset(offset)\
+          .limit(limit)\
+          .all()          
     else:
+      reseller = abort_if_obj_doesnt_exist(self.filter_by, target_reseller, Reseller)
       clients = Client.query.filter_by(id = self.request_user_client_id).first()
       clients = [clients]
 
