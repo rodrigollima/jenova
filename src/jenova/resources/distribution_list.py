@@ -221,10 +221,14 @@ class DistributionListResource(BaseResource):
       admin_pass = admin_password
     )
 
-    current_dlist = zr.getDistributionList(dlist_name) 
+    r = zr.getDistributionList(dlist_name) 
 
-    for accounts in current_dlist['GetDistributionListResponse']['dl']['dlm']:
-      current_members.append(accounts['_content'])
+    if r['GetDistributionListResponse']['dl'].get('dlm'):
+      if type(r['GetDistributionListResponse']['dl']['dlm']) is not list:
+        r['GetDistributionListResponse']['dl']['dlm'] = [r['GetDistributionListResponse']['dl']['dlm']]
+
+      for accounts in r['GetDistributionListResponse']['dl']['dlm']:
+        current_members.append(accounts['_content'])
 
     membersToAdd = list(set(members) - set(current_members))
     membersToRem = list(set(current_members) - set(members))
