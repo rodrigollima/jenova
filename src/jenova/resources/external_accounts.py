@@ -48,7 +48,7 @@ class ExternalDomainStatusResource(BaseResource):
     admin_user, admin_password = cred.identity, cred.secret
 
     zr = ZimbraRequest(
-      admin_url = service.service_api, 
+      admin_url = service.service_api,
       admin_user = admin_user, 
       admin_pass = admin_password
     )
@@ -336,5 +336,17 @@ class ExternalAccountsResource(BaseResource):
     now = datetime.datetime.now()
     date = now.strftime("%Y%m%d%H%M%S")
     new_name = '%s__%s__%s@deleted.accounts' % (date, username, domain)
+    self.logger.info('delete account: renaming account %s to %s' % (
+                      target_account, new_name
+    ))
     zr.renameAccount(zid = zid, new_name = new_name)
+    r = zr.getAccountMembership(account=zid, by="id")
+    if r['GetAccountMembershipResponse'].get('dl'):
+      if type(r['GetAccountMembershipResponse']['dl']) is not list:
+        r['GetAccountMembershipResponse']['dl'] = [r['GetAccountMembershipResponse']['dl']]
+      for dl in r['GetAccountMembershipResponse']['dl']:
+        self.logger.info('delete account: removing member %s from %s' % 
+                          (target_account, dl['name']))
+        zr.removeDistributionListMember(dlist_zimbra_id=dl['id'], members=[target_account])
+    
     return {}, 204

@@ -1117,6 +1117,32 @@ class ZimbraRequest(object):
       
     return response.get_response()
 
+  def getAccountMembership(self, account, by="name"):
+    """ Get Distribution Lists an user belongs.
+    :param account:str The key used to identify the account. Meaning determined by {acct-selector-by}
+    :param by:str Type:adminName|appAdminName|id|foreignPrincipal|name|krb5Principal
+                  Select the meaning of {acct-selector-key}
+    """
+    self.cleanUp()
+    self.request.add_request(
+        request_name = "GetAccountMembershipRequest",
+        request_dict = {
+          "account": {
+            "_content" : account,
+            "by" : by
+          }
+        },
+        namespace = "urn:zimbraAdmin"
+      )
+
+    response = self.comm.send_request(self.request)
+    if response.is_fault():
+      raise ZimbraRequestError(
+        message = 'Error getting distribution lists from account. Error: %s' % (response.get_fault_message()),
+        response = response
+      )
+    return response.get_response()
+
 class ZimbraReport(object):
   def __init__(self, admin_url, admin_user, admin_pass):
     self.zr = ZimbraRequest(
