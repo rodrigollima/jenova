@@ -5,7 +5,7 @@ from jenova.resources.base import BaseResource, abort_if_obj_doesnt_exist
 from jenova.models import Domain, Service
 from jenova.components import db, ZimbraRequest
 
-ZIMBRA_SUPPORTED_ATTRIBUTES = ['givenName', 'sn', 'displayName', 'zimbraAccountStatus', 'zimbraId', 'zimbraCOSId']
+ZIMBRA_SUPPORTED_ATTRIBUTES = ['givenName', 'sn', 'displayName', 'zimbraAccountStatus', 'zimbraId', 'zimbraCOSId', 'zimbraMailAlias']
 
 class ExternalDomainStatusResource(BaseResource):
   def __init__(self):
@@ -150,7 +150,7 @@ class ExternalAccountsListResource(BaseResource):
       'accounts' : [],
       'total' : 0
     }
-    # self.logger.debug(json.dumps(r, indent=2))
+
     if r['SearchDirectoryResponse']['searchTotal'] == 0:
       return { 'response' : res  }
     if type(r['SearchDirectoryResponse']['account']) is not list:
@@ -159,7 +159,12 @@ class ExternalAccountsListResource(BaseResource):
       data = dict()
       data['name'] = account['name']
       for attribute in account['a']:
-        data[attribute['n']] = attribute['_content']
+        if data.get(attribute['n']):
+          if type(data[attribute['n']]) is not list:
+            data[attribute['n']] = [data[attribute['n']]]
+          data[attribute['n']].append(attribute['_content'])
+        else:
+          data[attribute['n']] = attribute['_content']
       res['accounts'].append(data)
       res['total'] += 1
 
@@ -264,9 +269,13 @@ class ExternalAccountsResource(BaseResource):
       self.logger.info('reseting password for account')
       zr.setPassword(account_zimbra_id=reqdata['zimbraId'], password=reqdata['userPassword'])
 
+    if reqdata.get('zimbraMailAlias'):
+      # code to add alias here.
+      pass 
+
     modify_attrs = []
     for k, v in reqdata.iteritems():
-      if k == 'zimbraId' or k == 'userPassword':
+      if k == 'zimbraId' or k == 'userPassword' or k == 'zimbraMailAlias':
         continue
       modify_attrs.append([k, v])
 
@@ -299,7 +308,7 @@ class ExternalAccountsResource(BaseResource):
 
     zattrs = []
     for k, v in reqdata.iteritems():
-      if k == 'zimbraId' or k == 'userPassword':
+      if k == 'zimbraId' or k == 'userPassword' or k == 'zimbraMailAlias':
         continue
       zattrs.append([k, v])
 
@@ -339,7 +348,7 @@ class ExternalAccountsResource(BaseResource):
     self.logger.info('delete account: renaming account %s to %s' % (
                       target_account, new_name
     ))
-    zr.renameAccount(zid = zid, new_name = new_name)
+    
     r = zr.getAccountMembership(account=zid, by="id")
     if r['GetAccountMembershipResponse'].get('dl'):
       if type(r['GetAccountMembershipResponse']['dl']) is not list:
@@ -349,4 +358,5 @@ class ExternalAccountsResource(BaseResource):
                           (target_account, dl['name']))
         zr.removeDistributionListMember(dlist_zimbra_id=dl['id'], members=[target_account])
     
+    zr.renameAccount(zid = zid, new_name = new_name)
     return {}, 204
