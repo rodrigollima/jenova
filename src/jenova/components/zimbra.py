@@ -1142,6 +1142,53 @@ class ZimbraRequest(object):
         response = response
       )
     return response.get_response()
+  
+  def addAccountAlias(self, zid, alias):
+    """ Create an Account Alias.
+    :param zid:str Zimbra ID
+    :param alias:str Alias
+    """
+    self.cleanUp()
+    self.request.add_request(
+        request_name = "AddAccountAliasRequest",
+        request_dict = {
+          "id": zid,
+          "alias" : alias
+        },
+        namespace = "urn:zimbraAdmin"
+      )
+
+    response = self.comm.send_request(self.request)
+    if response.is_fault():
+      raise ZimbraRequestError(
+        message = 'Error adding account alias. Error: %s' % (response.get_fault_message()),
+        response = response
+      )
+    return response.get_response()
+
+  def removeAccountAlias(self, zid, alias):
+      """ Remove an Account Alias.
+      :param zid:str Zimbra ID
+      :param alias:str Alias
+      """
+      self.cleanUp()
+      self.request.add_request(
+          request_name = "RemoveAccountAliasRequest",
+          request_dict = {
+            "id": zid,
+            "alias" : alias
+          },
+          namespace = "urn:zimbraAdmin"
+        )
+
+      response = self.comm.send_request(self.request)
+      if response.is_fault():
+        raise ZimbraRequestError(
+          message = 'Error adding account alias. Error: %s' % (response.get_fault_message()),
+          response = response
+        )
+      return response.get_response()
+
 
 class ZimbraReport(object):
   def __init__(self, admin_url, admin_user, admin_pass):
