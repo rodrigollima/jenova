@@ -254,14 +254,16 @@ class ClientListResource(BaseResource):
     target_reseller = kwargs.get('target_reseller')
     self.parser.add_argument('limit', type=int, location='args')
     self.parser.add_argument('offset', type=int, location='args')
+    by_name_query = kwargs.get('by_name_query') or ''
     reqdata = self.parser.parse_args()
     offset, limit = reqdata.get('offset') or 0, reqdata.get('limit') or 25
 
     if self.is_global_admin:
       clients = Client.query \
-          .offset(offset)\
-          .limit(limit)\
-          .all()
+      .filter(Client.name.like('%' + by_name_query + '%'))\
+      .offset(offset)\
+      .limit(limit)\
+      .all()
       return {
         'response' : { 
           'reseller_id' : None,
@@ -270,11 +272,19 @@ class ClientListResource(BaseResource):
       }
     elif self.is_admin:
       reseller = abort_if_obj_doesnt_exist(self.filter_by, target_reseller, Reseller)
-      clients = Client.query.join(Reseller, Client.reseller_id == Reseller.id) \
+      if by_name_query:
+        clients = Client.query.join(Reseller, Client.reseller_id == Reseller.id) \
           .filter(Reseller.name == target_reseller) \
+          .filter(Client.name.like('%' + by_name_query + '%'))\
           .offset(offset)\
           .limit(limit)\
-          .all()          
+          .all()
+      else:  
+        clients = Client.query.join(Reseller, Client.reseller_id == Reseller.id) \
+            .filter(Reseller.name == target_reseller) \
+            .offset(offset)\
+            .limit(limit)\
+            .all()          
     else:
       reseller = abort_if_obj_doesnt_exist(self.filter_by, target_reseller, Reseller)
       clients = Client.query.filter_by(id = self.request_user_client_id).first()
