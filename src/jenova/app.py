@@ -89,8 +89,10 @@ try:
   api.add_resource(ResellerServicesListResource, '/resellers/<target_reseller>/services')
 
   api.add_resource(ClientListResource, *[
-    '/clients/list',
-    '/resellers/<target_reseller>/clients'
+    '/clients',
+    '/clients/<by_name_query>',
+    '/resellers/<target_reseller>/clients',
+    '/resellers/<target_reseller>/clients/<by_name_query>',
     ]
   )
   api.add_resource(ClientResource, '/resellers/<target_reseller>/clients/<target_client>')
