@@ -5,8 +5,8 @@ from jenova.resources.base import BaseResource, abort_if_obj_doesnt_exist
 from jenova.models import Domain, Service
 from jenova.components import db, ZimbraRequest
 
-ZIMBRA_SUPPORTED_ATTRIBUTES = ['givenName', 'sn', 'displayName', 'zimbraAccountStatus', 'zimbraId', 'zimbraCOSId']
-
+ZIMBRA_SUPPORTED_ATTRIBUTES = ['givenName', 'sn', 'displayName', 'zimbraAccountStatus', 'zimbraId', 'zimbraCOSId', 'zimbraMailAlias']
+IGNORE_BODY_ATTRIBUTES = ['zimbraId', 'userPassword', 'zimbraMailAlias', 'addZimbraMailAlias', 'removeZimbraMailAlias']
 class ExternalDomainStatusResource(BaseResource):
   def __init__(self):
     filters = ['id', 'name']
@@ -48,7 +48,7 @@ class ExternalDomainStatusResource(BaseResource):
     admin_user, admin_password = cred.identity, cred.secret
 
     zr = ZimbraRequest(
-      admin_url = service.service_api, 
+      admin_url = service.service_api,
       admin_user = admin_user, 
       admin_pass = admin_password
     )
@@ -150,7 +150,7 @@ class ExternalAccountsListResource(BaseResource):
       'accounts' : [],
       'total' : 0
     }
-    # self.logger.debug(json.dumps(r, indent=2))
+
     if r['SearchDirectoryResponse']['searchTotal'] == 0:
       return { 'response' : res  }
     if type(r['SearchDirectoryResponse']['account']) is not list:
@@ -159,7 +159,15 @@ class ExternalAccountsListResource(BaseResource):
       data = dict()
       data['name'] = account['name']
       for attribute in account['a']:
-        data[attribute['n']] = attribute['_content']
+        if data.get(attribute['n']):
+          if type(data[attribute['n']]) is not list:
+            data[attribute['n']] = [data[attribute['n']]]
+          data[attribute['n']].append(attribute['_content'])
+        else:
+          if attribute['n'] == 'zimbraMailAlias':
+            data[attribute['n']] = [attribute['_content']]
+          else:
+            data[attribute['n']] = attribute['_content']
       res['accounts'].append(data)
       res['total'] += 1
 
@@ -232,7 +240,15 @@ class ExternalAccountsResource(BaseResource):
       data = dict()
       data['name'] = account['name']
       for attribute in account['a']:
-        data[attribute['n']] = attribute['_content']
+        if data.get(attribute['n']):
+          if type(data[attribute['n']]) is not list:
+            data[attribute['n']] = [data[attribute['n']]]
+          data[attribute['n']].append(attribute['_content'])
+        else:
+          if attribute['n'] == 'zimbraMailAlias':
+            data[attribute['n']] = [attribute['_content']]
+          else:
+            data[attribute['n']] = attribute['_content']
       res.append(data)
 
     return { 'response' : res  }
@@ -258,15 +274,31 @@ class ExternalAccountsResource(BaseResource):
       self.parser.add_argument(zattr, type = str, default = '')
 
     self.parser.add_argument('userPassword', type = str)
+    self.parser.add_argument('addZimbraMailAlias', action="append")
+    self.parser.add_argument('removeZimbraMailAlias', action="append")
     reqdata = self.parser.parse_args()
 
     if reqdata.get('userPassword'):
       self.logger.info('reseting password for account')
       zr.setPassword(account_zimbra_id=reqdata['zimbraId'], password=reqdata['userPassword'])
 
+    if reqdata.get('addZimbraMailAlias'):
+      for alias in reqdata.get('addZimbraMailAlias'):
+        d = abort_if_obj_doesnt_exist('name', alias.split('@')[1], Domain)
+        if not self.is_global_admin:
+          if self.request_user_reseller_id != d.client.reseller_id:
+            abort(403, message = 'Permission denied! The requester does not belong to the requested domain.')
+          if self.request_user_client_id != d.client_id and not self.is_admin:
+            abort(403, message = 'Permission denied! The requester does not belong to the requested domain.')
+        zr.addAccountAlias(zid=reqdata['zimbraId'], alias=alias)
+      
+    if reqdata.get('removeZimbraMailAlias'):
+      for alias in reqdata.get('removeZimbraMailAlias'):
+        zr.removeAccountAlias(zid=reqdata['zimbraId'], alias=alias)
+
     modify_attrs = []
     for k, v in reqdata.iteritems():
-      if k == 'zimbraId' or k == 'userPassword':
+      if k in IGNORE_BODY_ATTRIBUTES:
         continue
       modify_attrs.append([k, v])
 
@@ -299,7 +331,7 @@ class ExternalAccountsResource(BaseResource):
 
     zattrs = []
     for k, v in reqdata.iteritems():
-      if k == 'zimbraId' or k == 'userPassword':
+      if k in IGNORE_BODY_ATTRIBUTES:
         continue
       zattrs.append([k, v])
 
@@ -336,5 +368,18 @@ class ExternalAccountsResource(BaseResource):
     now = datetime.datetime.now()
     date = now.strftime("%Y%m%d%H%M%S")
     new_name = '%s__%s__%s@deleted.accounts' % (date, username, domain)
+    self.logger.info('delete account: renaming account %s to %s' % (
+                      target_account, new_name
+    ))
+    
+    r = zr.getAccountMembership(account=zid, by="id")
+    if r['GetAccountMembershipResponse'].get('dl'):
+      if type(r['GetAccountMembershipResponse']['dl']) is not list:
+        r['GetAccountMembershipResponse']['dl'] = [r['GetAccountMembershipResponse']['dl']]
+      for dl in r['GetAccountMembershipResponse']['dl']:
+        self.logger.info('delete account: removing member %s from %s' % 
+                          (target_account, dl['name']))
+        zr.removeDistributionListMember(dlist_zimbra_id=dl['id'], members=[target_account])
+    
     zr.renameAccount(zid = zid, new_name = new_name)
     return {}, 204
