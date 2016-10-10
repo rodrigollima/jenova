@@ -260,7 +260,7 @@ class ClientListResource(BaseResource):
 
     if self.is_global_admin:
       clients = Client.query \
-      .filter(Client.name.like('%' + by_name_query + '%'))\
+      .filter(Client.name.like('%' + by_name_query + '%') | Client.company.like('%' + by_name_query + '%'))\
       .offset(offset)\
       .limit(limit)\
       .all()
@@ -275,7 +275,7 @@ class ClientListResource(BaseResource):
       if by_name_query:
         clients = Client.query.join(Reseller, Client.reseller_id == Reseller.id) \
           .filter(Reseller.name == target_reseller) \
-          .filter(Client.name.like('%' + by_name_query + '%'))\
+          .filter(Client.name.like('%' + by_name_query + '%') | Client.company.like('%' + by_name_query + '%'))\
           .offset(offset)\
           .limit(limit)\
           .all()
