@@ -99,7 +99,11 @@ try:
 
   # User, resources
   # Users belong to reseller (may be created only in reseller creation) or clients.
-  api.add_resource(UserListResource, '/users')
+  api.add_resource(UserListResource, *[
+    '/users',
+    '/users/<by_name_query>'
+    ]
+  )
   api.add_resource(UserResource, '/users/<target_auth>')
   api.add_resource(UserChangeStateResource, *[
       '/users/<target_auth>/globaladmin',
