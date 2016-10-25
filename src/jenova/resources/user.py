@@ -151,16 +151,18 @@ class UserListResource(BaseResource):
   # Overrided
   def is_forbidden(self, **kwargs): pass
 
-  def get(self):
+  def get(self, **kwargs):
     self.parser.add_argument('limit', type=int, location='args')
     self.parser.add_argument('offset', type=int, location='args')
+    by_name_query = kwargs.get('by_name_query') or ''
     reqdata = self.parser.parse_args()
-    offset, limit = reqdata.get('offset') or 0, reqdata.get('limit') or 1000
+    offset, limit = reqdata.get('offset') or 0, reqdata.get('limit') or 25
 
     if self.is_global_admin:
-      users = User.query\
-        .offset(offset)\
-        .limit(limit)\
+      users = User.query \
+        .filter(User.name.like('%' + by_name_query + '%') | User.email.like('%' + by_name_query + '%') | User.login.like('%' + by_name_query + '%'))\
+        .offset(offset) \
+        .limit(limit) \
         .all()
     elif self.is_admin:
       # Equivalent:
@@ -171,6 +173,7 @@ class UserListResource(BaseResource):
         .outerjoin(Reseller, User.reseller_id == Reseller.id) \
         .filter((Client.reseller_id == self.request_user_reseller_id) \
           | (Reseller.id == self.request_user_reseller_id)) \
+        .filter(User.name.like('%' + by_name_query + '%') | User.email.like('%' + by_name_query + '%') | User.login.like('%' + by_name_query + '%'))\
         .offset(offset) \
         .limit(limit) \
         .all()
