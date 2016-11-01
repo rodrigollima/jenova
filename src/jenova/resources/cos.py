@@ -13,7 +13,7 @@ class DomainCosResource(BaseResource):
   
   @property
   def scope(self):
-    return 'zimbra_login_delegated'
+    return 'zimbra'
 
   def get(self, service_name, domain_name):
     service = abort_if_obj_doesnt_exist('name', service_name, Service)

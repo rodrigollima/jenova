@@ -705,7 +705,7 @@ class DomainServicePreAuthDelegationResource(BaseResource):
 
   @property
   def scope(self):
-    return 'zimbra_login_delegated'
+    return 'zimbra'
 
   # Overrided
   def is_forbidden(self, service_name, domain_name):
