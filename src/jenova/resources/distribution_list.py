@@ -12,7 +12,7 @@ class DistributionListsResource(BaseResource):
 
   @property
   def scope(self):
-    return 'zimbra_login_delegated'
+    return 'zimbra'
 
   # Overrided
   def is_forbidden(self, **kwargs):
@@ -23,9 +23,7 @@ class DistributionListsResource(BaseResource):
     """
     if self.is_global_admin: return
 
-    if not self.is_admin and not request.method == 'GET':
-      abort(403, message = 'Permission denied! Does not have enough permissions for access this resource')
-
+    
     domain_name, service_name = kwargs.get('domain_name'), kwargs.get('service_name')
     if not domain_name:
       abort(400, message = 'Could not find "domain_name"')
@@ -121,7 +119,7 @@ class DistributionListResource(BaseResource):
 
   @property
   def scope(self):
-    return 'zimbra_login_delegated'
+    return 'zimbra'
 
   # Overrided
   def is_forbidden(self, **kwargs):
@@ -131,9 +129,6 @@ class DistributionListResource(BaseResource):
     A requester must have access of your own domains (client) 
     """
     if self.is_global_admin: return
-
-    if not self.is_admin and not request.method == 'GET':
-      abort(403, message = 'Permission denied! Does not have enough permissions for access this resource')
 
     domain_name, service_name = kwargs.get('domain_name'), kwargs.get('service_name')
     if not domain_name:

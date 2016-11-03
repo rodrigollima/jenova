@@ -14,7 +14,7 @@ class ExternalDomainStatusResource(BaseResource):
   
   @property
   def scope(self):
-    return 'zimbra_login_delegated'
+    return 'zimbra'
 
   # Overrided
   def is_forbidden(self, **kwargs):
@@ -92,7 +92,7 @@ class ExternalAccountsListResource(BaseResource):
   
   @property
   def scope(self):
-    return 'zimbra_login_delegated'
+    return 'zimbra'
 
   # Overrided
   def is_forbidden(self, **kwargs):
@@ -102,9 +102,6 @@ class ExternalAccountsListResource(BaseResource):
     A requester must have access of your own domains (client) 
     """
     if self.is_global_admin: return
-
-    if not self.is_admin and not request.method == 'GET':
-      abort(403, message = 'Permission denied! Does not have enough permissions for access this resource')
 
     domain_name, service_name = kwargs.get('domain_name'), kwargs.get('service_name')
     if not domain_name:
@@ -180,7 +177,7 @@ class ExternalAccountsResource(BaseResource):
 
   @property
   def scope(self):
-    return 'zimbra_login_delegated'
+    return 'zimbra'
 
   # Overrided
   def is_forbidden(self, **kwargs):
@@ -231,7 +228,6 @@ class ExternalAccountsResource(BaseResource):
     )
 
     res = []
-    # self.logger.debug(json.dumps(r, indent=2))
     if r['SearchDirectoryResponse']['searchTotal'] == 0:
       abort(404, message = 'Could not find any domain')
     if type(r['SearchDirectoryResponse']['account']) is not list:
