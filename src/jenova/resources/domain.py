@@ -360,7 +360,8 @@ class DomainResource(BaseResource):
 
     self.parser.add_argument('services', type=str, action='append')
     reqdata = self.parser.parse_args(strict=True)
-
+    
+    domain_name = domain_name.lower()
     # A domain is unique to a client
     if Domain.query.join(Client, Client.id == Domain.client_id) \
       .filter(Domain.name == domain_name) \
