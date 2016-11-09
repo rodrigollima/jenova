@@ -24,7 +24,7 @@ DEFAULT_SCOPES = [
   'service',
   'store',
   'users',
-  'zimbra_login_delegated'
+  'zimbra'
 ]
 PERMS = ['write', 'read', 'edit', 'delete']
 
