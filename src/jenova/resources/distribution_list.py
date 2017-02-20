@@ -73,6 +73,7 @@ class DistributionListsResource(BaseResource):
     service = abort_if_obj_doesnt_exist('name', service_name, Service)
 
     cred = service.credentials
+    
     if not cred:
       abort(400, message = 'Could not find any credentials for the service %s' % service.name)
     admin_user, admin_password = cred.identity, cred.secret
@@ -87,6 +88,7 @@ class DistributionListsResource(BaseResource):
     if not domain_name == dlist_name.split('@')[1]:
       abort(400, message = 'Distribution List must belong to required domain %s' % domain_name)    
 
+    self.has_option('aaaaaaa')
     members = []
     for account in reqdata['accounts']:
       if not domain_name == account['name'].split('@')[1]:

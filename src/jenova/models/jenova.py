@@ -195,6 +195,9 @@ class User(db.Model):
   desc = db.Column(db.String(255))
   # One-To-Many
   permissions = db.relationship('Permissions', backref='user', cascade='all,delete-orphan')
+  #options = db.relationship('Permissions', backref='user', cascade='all,delete-orphan')
+  #options = db.relationship('Options', backref='user', cascade='all,delete-orphan')
+  
   created_at = db.Column(db.DateTime, default=datetime.now())
 
   def __repr__(self):
@@ -234,3 +237,4 @@ class Notices(db.Model):
   service_name = db.Column(db.String(100), nullable=False)
   description = db.Column(db.String(2048), nullable=False)
   sla_impact = db.Column(db.Float(), default=0, nullable=False)
+

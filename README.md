@@ -31,3 +31,25 @@ Docker Images
 -------------
 
 If you want only run Jenova in your server,  docker pull on this image available in [Docker Hub](https://hub.docker.com/r/inova/jenova/).
+
+CREATE TABLE `jenovadb`.`user_options_mapping` (
+  `id` INT NOT NULL,
+  `resource_option_id` INT NULL,
+  `user_id` INT NULL,
+  PRIMARY KEY (`id`));
+
+CREATE TABLE `jenovadb`.`resource_options` (
+  `id` INT NOT NULL,
+  `resource` VARCHAR(100) NULL,
+  `name` VARCHAR(100) NULL,
+  PRIMARY KEY (`id`));
+
+CREATE TABLE `jenovadb`.`options` (
+  `id` INT NOT NULL,
+  `resources_options_id` INT NOT NULL,
+  `user_id` INT NOT NULL,
+  PRIMARY KEY (`id`));
+
+ALTER TABLE `jenovadb`.`user_options_mapping` 
+DROP COLUMN `id`,
+DROP PRIMARY KEY;

@@ -150,6 +150,10 @@ class BaseResource(Resource):
   def request_user_id(self):
     return self.jwt_payload['user']['id']
 
+  @property
+  def request_user_options(self):
+    return self.jwt_payload['user']['options']
+
   ### PERMISSIONS METHODS ###
   """
   # It is possible to override these methods on each Resource classes.
@@ -219,6 +223,13 @@ class BaseResource(Resource):
     :param kwargs: The resource attributes for validating the contraints
     """
     if not self.is_global_admin: abort(403, message = 'Permission denied! Does not have enough permissions.')
+
+  def has_option(self, option):
+      """ Check if user has permission to override some options (create group with external account) """  
+      has_option = False
+      for option in self.jwt_payload['user']['options']:
+        print("****OPTION:")
+        print(option.option)      
 
 class TaskResource(BaseResource):
   def __init__(self):

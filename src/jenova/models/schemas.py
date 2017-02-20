@@ -38,6 +38,15 @@ class PermissionsSchema(Schema):
   delete = fields.Boolean()
   edit = fields.Boolean()
   scope = fields.Nested(ScopeSchema)
+  
+class ResourceOptionsSchema(Schema):
+  id = fields.Integer()
+  option = fields.String()
+
+class ResourceUserOptionsSchema(Schema):
+  id = fields.Integer()
+  user_id = fields.Integer()
+  resource_options_id = fields.Nested(ResourceOptionsSchema)
 
 class UserSchema(Schema):
   id = fields.Integer()
@@ -50,6 +59,8 @@ class UserSchema(Schema):
   admin = fields.Boolean()
   global_admin = fields.Boolean()
   permissions = fields.Nested(PermissionsSchema, many=True)
+  options = fields.Nested(ResourceUserOptionsSchema, many=True)
+
   client = fields.Nested(ClientNameSchema)
   reseller = fields.Nested(ResellerNameSchema)
   created_at = fields.DateTime()

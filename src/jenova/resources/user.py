@@ -1,5 +1,6 @@
 from datetime import datetime
 import uuid, jwt
+from sqlalchemy.orm import joinedload, subqueryload 
 
 from flask.ext.restful import abort, Resource, reqparse, request
 from jenova.resources.base import BaseResource, abort_if_obj_doesnt_exist
@@ -521,6 +522,7 @@ class AuthenticationResource(Resource):
     reqdata = parser.parse_args(strict=True)
 
     user = User.query.filter_by(login = reqdata['username']).first()
+    print(UserSchema().dump(user).data);
     if not user:
       abort(401, message = 'Wrong credentials')
 
