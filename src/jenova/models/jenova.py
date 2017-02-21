@@ -178,6 +178,12 @@ user_scope_mapping = db.Table('user_scope_mapping',
   db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
 )
 
+user_scope_options_mapping = db.Table('user_scope_options_mapping',
+  db.Column('scope_id', db.Integer, db.ForeignKey('scope_options.id')),
+  db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
+)
+
+
 class User(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
@@ -195,14 +201,18 @@ class User(db.Model):
   desc = db.Column(db.String(255))
   # One-To-Many
   permissions = db.relationship('Permissions', backref='user', cascade='all,delete-orphan')
-  #options = db.relationship('Permissions', backref='user', cascade='all,delete-orphan')
-  #options = db.relationship('Options', backref='user', cascade='all,delete-orphan')
+  scope_options = db.relationship('ScopeOptions', secondary=user_scope_options_mapping, backref='user', cascade='all')
   
   created_at = db.Column(db.DateTime, default=datetime.now())
 
   def __repr__(self):
     return '<User %r>' % self.login
 
+class ScopeOptions(db.Model):
+  id = db.Column(db.Integer, primary_key=True)
+  description = db.Column(db.String(100), nullable=False)
+  scope = db.Column(db.String(100), nullable=False)
+  
 class Scope(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   name = db.Column(db.String(60), nullable=False, unique=True)

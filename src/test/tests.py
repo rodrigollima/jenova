@@ -1,7 +1,8 @@
-import unittest, sys, requests, json, uuid, time, socket, random
+import unittest, sys, requests, json, uuid, time, socket, random, os
 from datetime import datetime, timedelta
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning) # supress ssl warnings.
+from sqlalchemy import update
 
 TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7Im5hbWUiOiJRQSBBZG1pbiIsImFkbWluIjpmYWxzZSwiYXBpX2VuYW\
 JsZWQiOnRydWUsImFwaV9hY2Nlc3MiOltdLCJlbmFibGVkIjp0cnVlLCJlbWFpbCI6InNhbmRyby5tZWxsb0Bpbm92YS5uZXQiLCJjcmVhdGVfdG\
@@ -680,5 +681,4 @@ if __name__ == '__main__':
   suite.addTest(ClientTestCase('test_external_accounts'))
   suite.addTest(ClientTestCase('test_external_domain'))
   suite.addTest(ClientTestCase('test_domain_cos_crud_operations'))
-
   unittest.TextTestRunner().run(suite)

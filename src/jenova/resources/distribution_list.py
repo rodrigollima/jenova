@@ -88,10 +88,9 @@ class DistributionListsResource(BaseResource):
     if not domain_name == dlist_name.split('@')[1]:
       abort(400, message = 'Distribution List must belong to required domain %s' % domain_name)    
 
-    self.has_option('aaaaaaa')
     members = []
     for account in reqdata['accounts']:
-      if not domain_name == account['name'].split('@')[1]:
+      if not domain_name == account['name'].split('@')[1] and not self.has_scope_option('hostedzimbra.dlists.add_external_account'):
         abort(400, message = 'Account must belong to required domain %s' % domain_name)
       members.append(account['name'])
 
@@ -208,7 +207,7 @@ class DistributionListResource(BaseResource):
     members = []
     current_members = []
     for account in reqdata['accounts']:
-      if not domain_name == account['name'].split('@')[1]:
+      if not domain_name == account['name'].split('@')[1] and not self.has_scope_option('hostedzimbra.dlists.add_external_account'):
         abort(400, message = 'Account must belong to required domain %s' % domain_name)
       members.append(account['name'])
 

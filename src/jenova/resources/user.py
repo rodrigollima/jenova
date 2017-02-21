@@ -522,7 +522,7 @@ class AuthenticationResource(Resource):
     reqdata = parser.parse_args(strict=True)
 
     user = User.query.filter_by(login = reqdata['username']).first()
-    print(UserSchema().dump(user).data);
+    
     if not user:
       abort(401, message = 'Wrong credentials')
 

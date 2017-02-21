@@ -224,12 +224,14 @@ class BaseResource(Resource):
     """
     if not self.is_global_admin: abort(403, message = 'Permission denied! Does not have enough permissions.')
 
-  def has_option(self, option):
-      """ Check if user has permission to override some options (create group with external account) """  
-      has_option = False
-      for option in self.jwt_payload['user']['options']:
-        print("****OPTION:")
-        print(option.option)      
+  def has_scope_option(self, option):
+    """ Check if user has permission to override some options (create group with external account) """  
+    has_option_perm = False
+    for opt in self.jwt_payload['user']['scope_options']:
+      if opt.get('scope') == option:
+        has_option_perm = True
+        break
+    return has_option_perm
 
 class TaskResource(BaseResource):
   def __init__(self):
