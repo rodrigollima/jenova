@@ -212,6 +212,9 @@ class ScopeOptions(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   description = db.Column(db.String(100), nullable=False)
   scope = db.Column(db.String(100), nullable=False)
+
+  def __repr__(self):
+    return '<ScopeOptions %r>' % self.scope
   
 class Scope(db.Model):
   id = db.Column(db.Integer, primary_key=True)

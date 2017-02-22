@@ -1,7 +1,7 @@
 from jenova.resources.user import (
   UserResource, UserListResource, AuthenticationResource,
   ScopeResource, PermissionsResource, UserChangeStateResource,
-  ScopeUserResource, ScopeListResource, ScopeListUserResource
+  ScopeUserResource, ScopeListResource, ScopeListUserResource, ScopeOptionsResource
 )
 from jenova.resources.cos import (CosResource, DomainCosResource)
 from jenova.resources.domain import (

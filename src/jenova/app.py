@@ -17,7 +17,7 @@ from jenova.resources import (
   ClientResource, ClientListResource, ResellerServicesListResource,
 
   # User, Auth, Scope and Permissions resources
-  AuthenticationResource, PermissionsResource, UserListResource, UserChangeStateResource,
+  AuthenticationResource, PermissionsResource, ScopeOptionsResource, UserListResource, UserChangeStateResource,
   UserResource, ScopeUserResource, ScopeListResource, ScopeListUserResource, ScopeResource,
 
   # Domain and Cos resources
@@ -126,6 +126,7 @@ try:
   api.add_resource(ScopeResource, '/scopes/<scope_name>')
   api.add_resource(ScopeListUserResource, '/scopes/<scope_name>/users')
   api.add_resource(ScopeUserResource, '/scopes/<scope_name>/users/<user>')
+  api.add_resource(ScopeOptionsResource, '/scopes/<scope_name>/users/<user>/options')
   api.add_resource(PermissionsResource, *[
       '/scopes/<scope_name>/users/<user>/permissions',
       '/scopes/<scope_name>/users/<user>/permissions/read',

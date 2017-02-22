@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload, subqueryload
 from flask.ext.restful import abort, Resource, reqparse, request
 from jenova.resources.base import BaseResource, abort_if_obj_doesnt_exist
 from jenova.components import Security, db
-from jenova.models import Client, User, Scope, ScopeSchema, Permissions, UserSchema, Reseller
+from jenova.models import Client, User, Scope, ScopeOptions, ScopeSchema, Permissions, UserSchema, Reseller
 
 class ScopeListResource(BaseResource):
   def __init__(self):
@@ -506,6 +506,98 @@ class PermissionsResource(BaseResource):
       perm.delete = False
     else:
       abort(405, message = 'Method not allowed.')
+
+    db.session.commit()
+    return {
+      'response' : {
+        'perm_id' : perm.id
+      }
+    }
+
+class ScopeOptionsResource(BaseResource):
+  def __init__(self):
+    filters = ['scope', 'id']
+    super(ScopeOptionsResource, self).__init__(filters, default_filter='scope')
+
+  @property
+  def scope(self):
+    return 'permissions'
+
+  # Overrided
+  def is_forbidden(self, scope_name, user):
+    """ Check for access rules:
+    A global admin must not have any restrictions.
+    A requester must be an admin.
+    A requester must have access to your own users.
+    """
+    if self.is_global_admin: return
+    if not self.is_admin:
+      abort(403, message = 'Permission denied. Does not have enough permissions.')
+
+    if not user:
+      abort(400, message = 'Could not find "user"')
+
+    user = abort_if_obj_doesnt_exist('login', user, User)
+    # It's a reseller login
+    if user.reseller_id and self.request_user_reseller_id != user.reseller_id:
+      abort(403, message = 'Permission denied! The requester does not have permission to access this user.')
+
+    if user.client and self.request_user_reseller_id != user.client.reseller_id:
+      abort(403, message = 'Permission denied! The requester does not have enough permissions')      
+
+  # Perm ON
+  def post(self, scope_name, user):
+    user = abort_if_obj_doesnt_exist('login', user, User)
+    scope = abort_if_obj_doesnt_exist(self.filter_by, scope_name, Scope)
+
+    perm = Permissions.query.filter_by(user_id = user.id, scope_id = scope.id).first()
+    if not perm:
+      perm = Permissions(
+        read = False,
+        write = False,
+        delete = False,
+        edit = False
+      )
+      db.session.add(perm)
+    
+    perm.user_id = user.id
+    perm.scope_id = scope.id
+
+    end_path = request.path.split('/')[-1:][0]
+
+    if end_path == 'read':
+      perm.read = True
+    elif end_path == 'write':
+      perm.write = True
+    elif end_path == 'edit':
+      perm.edit = True
+    elif end_path == 'delete':
+      perm.delete = True
+    else:
+      abort(405, message = 'Method not allowed.')
+
+    db.session.commit()
+    return {
+      'response' : {
+        'perm_id' : perm.id
+      }
+    }
+
+  # Perm OFF
+  def delete(self, scope_name, user):
+    user = abort_if_obj_doesnt_exist('login', user, User)
+    scope = abort_if_obj_doesnt_exist(self.filter_by, scope_name, ScopeOptions)
+    user.scope_options.remove(scope);
+    print(user, scope)
+    #return true
+    
+    perm = Permissions.query.filter_by(user_id = user.id, scope_id = scope.id).first()
+    if not perm:
+      abort(404, message = 'Could not find any permission for user "%s" and scope "%s"' % (user.name, scope_name))
+
+    end_path = request.path.split('/')[-1:][0]
+
+    
 
     db.session.commit()
     return {
