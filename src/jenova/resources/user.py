@@ -521,7 +521,7 @@ class ScopeOptionsResource(BaseResource):
 
   @property
   def scope(self):
-    return 'permissions'
+    return 'scope_options'
 
   # Overrided
   def is_forbidden(self, scope_name, user):
@@ -548,38 +548,18 @@ class ScopeOptionsResource(BaseResource):
   # Perm ON
   def post(self, scope_name, user):
     user = abort_if_obj_doesnt_exist('login', user, User)
-    scope = abort_if_obj_doesnt_exist(self.filter_by, scope_name, Scope)
-
-    perm = Permissions.query.filter_by(user_id = user.id, scope_id = scope.id).first()
-    if not perm:
-      perm = Permissions(
-        read = False,
-        write = False,
-        delete = False,
-        edit = False
-      )
-      db.session.add(perm)
+    scope = abort_if_obj_doesnt_exist(self.filter_by, scope_name, ScopeOptions)
     
-    perm.user_id = user.id
-    perm.scope_id = scope.id
-
-    end_path = request.path.split('/')[-1:][0]
-
-    if end_path == 'read':
-      perm.read = True
-    elif end_path == 'write':
-      perm.write = True
-    elif end_path == 'edit':
-      perm.edit = True
-    elif end_path == 'delete':
-      perm.delete = True
-    else:
-      abort(405, message = 'Method not allowed.')
-
-    db.session.commit()
+    db.session.add(user)
+    try:
+      user.scope_options.append(scope)
+      db.session.commit()
+    except:
+      abort(409, message = 'Could not associate a scope option to a user')
+      
     return {
       'response' : {
-        'perm_id' : perm.id
+        'scope_id' : scope.id
       }
     }
 
@@ -587,24 +567,12 @@ class ScopeOptionsResource(BaseResource):
   def delete(self, scope_name, user):
     user = abort_if_obj_doesnt_exist('login', user, User)
     scope = abort_if_obj_doesnt_exist(self.filter_by, scope_name, ScopeOptions)
-    user.scope_options.remove(scope);
-    print(user, scope)
-    #return true
-    
-    perm = Permissions.query.filter_by(user_id = user.id, scope_id = scope.id).first()
-    if not perm:
-      abort(404, message = 'Could not find any permission for user "%s" and scope "%s"' % (user.name, scope_name))
-
-    end_path = request.path.split('/')[-1:][0]
-
-    
-
-    db.session.commit()
-    return {
-      'response' : {
-        'perm_id' : perm.id
-      }
-    }
+    try: 
+      user.scope_options.remove(scope);
+      db.session.commit()
+    except:
+      abort(404, message = 'Could not find scope option "%s" for user "%s"' % (scope, user))
+       
 
 class AuthenticationResource(Resource):
   def post(self):

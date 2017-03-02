@@ -126,7 +126,6 @@ try:
   api.add_resource(ScopeResource, '/scopes/<scope_name>')
   api.add_resource(ScopeListUserResource, '/scopes/<scope_name>/users')
   api.add_resource(ScopeUserResource, '/scopes/<scope_name>/users/<user>')
-  api.add_resource(ScopeOptionsResource, '/scopes/<scope_name>/users/<user>/options')
   api.add_resource(PermissionsResource, *[
       '/scopes/<scope_name>/users/<user>/permissions',
       '/scopes/<scope_name>/users/<user>/permissions/read',
@@ -135,6 +134,7 @@ try:
       '/scopes/<scope_name>/users/<user>/permissions/delete'
     ]
   )
+  api.add_resource(ScopeOptionsResource, '/scopes/<scope_name>/users/<user>/options')
 
   # Reports
   api.add_resource(ResellerReportResource, '/reports/resellers/<target_reseller>')
